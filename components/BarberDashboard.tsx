@@ -6,7 +6,7 @@ import { AgendaCalendarView } from './AgendaCalendarView';
 import { ClientManagementView } from './ClientManagementView';
 import { ReportingView } from './ReportingView';
 import { BookingDetailModal } from './BookingDetailModal';
-import { PoweredByFooter } from './PoweredByFooter.tsx';
+import { PoweredByFooter } from './PoweredByFooter';
 
 interface BarberDashboardProps {
   barberShop: BarberShop;
