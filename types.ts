@@ -55,6 +55,8 @@ export interface BarberShop {
   services: Service[];
   schedule: ScheduleConfig;
   created_at: string;
+  license_type: 'Trial' | 'Mensual' | 'Anual' | null;
+  license_expires_at: string | null;
 }
 
 // Type for the admin view, combining BarberShop with user info from an RPC call
