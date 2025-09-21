@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import type { BarberShopWithUser, Booking } from '../types';
+import type { BarberShop, BarberShopWithUser, Booking } from '../types';
 import { BarberShopList } from './BarberShopList';
 import { AddBarberShopModal } from './AddBarberShopModal';
+import { LicenseModal } from './LicenseModal';
 import { StatCard } from './StatCard';
 
 interface AdminDashboardProps {
@@ -9,15 +10,32 @@ interface AdminDashboardProps {
   bookings: Booking[];
   onAddBarberShopAndUser: (details: { name: string; email: string; password: string }) => Promise<void>;
   onUpdateBarberShopStatus: (shopId: string, status: BarberShopWithUser['status']) => Promise<void>;
+  onUpdateBarberShopLicense: (shopId: string, license: { type: BarberShop['license_type']; expiresAt: string | null }) => Promise<void>;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, bookings, onAddBarberShopAndUser, onUpdateBarberShopStatus }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, bookings, onAddBarberShopAndUser, onUpdateBarberShopStatus, onUpdateBarberShopLicense }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
+  const [selectedShopForLicense, setSelectedShopForLicense] = useState<BarberShopWithUser | null>(null);
+
 
   const handleAddSubmit = async (details: { name: string; email: string; password: string }) => {
     await onAddBarberShopAndUser(details);
     setIsAddModalOpen(false);
   }
+
+  const openLicenseModal = (shop: BarberShopWithUser) => {
+    setSelectedShopForLicense(shop);
+    setIsLicenseModalOpen(true);
+  };
+
+  const handleLicenseSubmit = async (license: { type: BarberShop['license_type']; expiresAt: string | null }) => {
+    if (selectedShopForLicense) {
+        await onUpdateBarberShopLicense(selectedShopForLicense.id, license);
+        setIsLicenseModalOpen(false);
+        setSelectedShopForLicense(null);
+    }
+  };
 
   const totalShops = barberShops.length;
   const activeShops = barberShops.filter(s => s.status === 'Activa').length;
@@ -61,6 +79,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
           <BarberShopList 
             barberShops={barberShops} 
             onUpdateStatus={onUpdateBarberShopStatus} 
+            onManageLicense={openLicenseModal}
           />
         </div>
       </div>
@@ -71,6 +90,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddSubmit}
       />
+
+      {selectedShopForLicense && (
+        <LicenseModal
+            isOpen={isLicenseModalOpen}
+            onClose={() => setIsLicenseModalOpen(false)}
+            onSave={handleLicenseSubmit}
+            barberShop={selectedShopForLicense}
+        />
+      )}
     </>
   );
 };
