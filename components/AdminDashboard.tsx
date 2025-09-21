@@ -5,15 +5,15 @@ import { AddBarberShopModal } from './AddBarberShopModal';
 
 interface AdminDashboardProps {
   barberShops: BarberShop[];
-  onAddBarberShop: (name: string) => void;
-  onUpdateBarberShopStatus: (shopId: string, status: BarberShop['status']) => void;
+  onAddBarberShop: (name: string) => Promise<void>;
+  onUpdateBarberShopStatus: (shopId: string, status: BarberShop['status']) => Promise<void>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, onAddBarberShop, onUpdateBarberShopStatus }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleAddSubmit = (name: string) => {
-    onAddBarberShop(name);
+  const handleAddSubmit = async (name: string) => {
+    await onAddBarberShop(name);
     setIsAddModalOpen(false);
   }
 
