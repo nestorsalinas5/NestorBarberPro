@@ -7,7 +7,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { BookingSummary } from './BookingSummary';
 import { useBookingLogic } from '../hooks/useBookingLogic';
 import type { Booking, BarberShop } from '../types';
-import { PoweredByFooter } from './PoweredByFooter';
+import { PoweredByFooter } from './PoweredByFooter.tsx';
 
 interface ClientBookingViewProps {
   barberShop: BarberShop;
