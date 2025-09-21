@@ -1,8 +1,15 @@
 import { GoogleGenAI } from "https://esm.run/@google/genai";
 import type { Booking } from '../types';
 
-// FIX: Aligned with Gemini API guidelines by removing `as string`. Assumes API_KEY is set in the environment.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKey) {
+  // This error will be thrown during initialization if the key is missing.
+  // It's a clear indicator for the developer that the environment variable is not set correctly in Vercel.
+  throw new Error("VITE_GEMINI_API_KEY is not set. Please add it to your Vercel environment variables.");
+}
+
+const ai = new GoogleGenAI({ apiKey });
 
 /**
  * Simulates syncing a booking to a Google Sheet by using the Gemini API
