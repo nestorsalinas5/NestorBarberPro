@@ -4,7 +4,7 @@ import { BarberShopList } from './BarberShopList';
 import { AddBarberShopModal } from './AddBarberShopModal';
 import { LicenseModal } from './LicenseModal';
 import { StatCard } from './StatCard';
-import { PoweredByFooter } from './PoweredByFooter';
+import { PoweredByFooter } from './PoweredByFooter.tsx';
 
 interface AdminDashboardProps {
   barberShops: BarberShopWithUser[];
