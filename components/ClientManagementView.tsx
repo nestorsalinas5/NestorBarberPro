@@ -1,12 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import type { Client } from '../types';
+import { ClientEditModal } from './ClientEditModal';
 
 interface ClientManagementViewProps {
   clients: Client[];
+  onUpdateClient: (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => Promise<void>;
 }
 
-export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clients }) => {
+const PencilIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}> <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /> </svg> );
+
+
+export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clients, onUpdateClient }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
 
   const filteredClients = useMemo(() => {
     return clients
@@ -23,7 +29,21 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
       return new Date(dateString).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
+  const handleEditClick = (client: Client) => {
+    setEditingClient(client);
+  };
+
+  const handleModalClose = () => {
+    setEditingClient(null);
+  };
+
+  const handleUpdate = async (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => {
+    await onUpdateClient(clientData);
+    handleModalClose();
+  };
+
   return (
+    <>
     <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8 animate-fade-in">
         <div className="flex justify-between items-center mb-6">
             <div>
@@ -47,6 +67,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Contacto</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Citas Totales</th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Última Visita</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800">
@@ -59,6 +80,11 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text">{client.total_bookings}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-secondary">{formatDate(client.last_visit)}</td>
+                             <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <button onClick={() => handleEditClick(client)} className="text-brand-primary hover:text-brand-secondary">
+                                    <PencilIcon className="w-5 h-5" />
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -71,5 +97,13 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
             )}
         </div>
     </div>
+    {editingClient && (
+        <ClientEditModal
+            client={editingClient}
+            onClose={handleModalClose}
+            onSave={handleUpdate}
+        />
+    )}
+    </>
   );
 };
