@@ -101,13 +101,17 @@ function App() {
 
   const handleNavigateToLogin = () => setView('login');
 
-  const handleBookingConfirmed = async (bookingData: Omit<Booking, 'id' | 'status' | 'created_at'>) => {
+  const handleBookingConfirmed = async (bookingData: Omit<Booking, 'id' | 'status' | 'created_at'>): Promise<boolean> => {
     const { data, error } = await supabase.from('bookings').insert([bookingData]).select();
     if (error) {
       console.error('Error creating booking:', error);
+      alert(`Error al confirmar la reserva: ${error.message}. Es probable que falte una política de seguridad (RLS) en la base de datos para permitir inserciones públicas.`);
+      return false;
     } else if (data) {
       setBookings(prev => [...prev, data[0] as Booking]);
+      return true;
     }
+    return false;
   };
 
   const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
