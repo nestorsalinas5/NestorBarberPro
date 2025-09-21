@@ -11,7 +11,7 @@ import type { Booking, BarberShop } from '../types';
 interface ClientBookingViewProps {
   barberShop: BarberShop;
   bookings: Booking[];
-  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status'>) => void;
+  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => void;
 }
 
 export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed }) => {
@@ -28,7 +28,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
     handleTimeSlotSelect,
     handleBookingSubmit,
     handleReset,
-  } = useBookingLogic(bookings, barberShop.schedule, onBookingConfirmed);
+  } = useBookingLogic(bookings, barberShop.schedule, (bookingData) => onBookingConfirmed({ ...bookingData, barber_shop_id: barberShop.id }));
 
   const getStepComponent = () => {
     switch (step) {
@@ -37,7 +37,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
       case 2:
         return <DatePicker selectedDate={selectedDate} onDateSelect={handleDateSelect} />;
       case 3:
-        return <TimeSlotGrid timeSlots={timeSlots} onSelectTimeSlot={handleTimeSlotSelect} selectedTimeSlot={selectedTimeSlot} selectedDate={selectedDate} weekendSlotsCount={barberShop.schedule.weekendSlots} />;
+        return <TimeSlotGrid timeSlots={timeSlots} onSelectTimeSlot={handleTimeSlotSelect} selectedTimeSlot={selectedTimeSlot} selectedDate={selectedDate} weekend_slots_count={barberShop.schedule.weekend_slots_count} />;
       case 4:
         return <BookingForm onSubmit={handleBookingSubmit} isSubmitting={isSubmitting} />;
       default:
