@@ -1,0 +1,5 @@
+{
+  "name": "NestorBarberPro",
+  "description": "Plataforma SaaS para la gestión de barberías. Incluye un portal de reservas para clientes, un panel de gestión de citas para barberos y un panel de administración para el propietario del SaaS.",
+  "requestFramePermissions": []
+}
