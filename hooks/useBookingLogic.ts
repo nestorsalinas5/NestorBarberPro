@@ -1,11 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Service, TimeSlot, Booking, ScheduleConfig } from '../types';
-import { syncBookingToSheet } from '../services/googleSheets';
 
 export const useBookingLogic = (
   bookings: Booking[],
   schedule: ScheduleConfig,
-  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status'>) => void
+  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => void
 ) => {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -20,12 +19,13 @@ export const useBookingLogic = (
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
     const todaysBooked = bookings
-      .filter(b => b.date.toISOString().split('T')[0] === dateString && b.status !== 'Cancelada')
+      .filter(b => b.date === dateString && b.status !== 'Cancelada')
       .map(b => b.time);
     
-    if (day === 5 || day === 6) { // Friday or Saturday
+    // Friday (5) or Saturday (6)
+    if (day === 5 || day === 6) { 
       const slots: TimeSlot[] = [];
-      for (let i = 0; i < schedule.weekendSlots; i++) {
+      for (let i = 0; i < schedule.weekend_slots_count; i++) {
         const slotLabel = `Cupo ${i + 1}`;
         slots.push({
           time: slotLabel,
@@ -78,19 +78,13 @@ export const useBookingLogic = (
     
     const bookingData = {
       service: selectedService,
-      date: selectedDate,
+      date: selectedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD string for DB
       time: selectedTimeSlot.time,
       customer: customerDetails,
     };
     
-    // Sync to Google Sheets (Simulated via Gemini)
-    try {
-      await syncBookingToSheet(bookingData);
-    } catch (error) {
-      console.error('Failed to sync to Google Sheets:', error);
-    }
-    
-    onBookingConfirmed(bookingData);
+    // In a real app, you'd also pass the barber_shop_id here
+    await onBookingConfirmed(bookingData as any);
     
     setIsSubmitting(false);
     setIsConfirmed(true);
