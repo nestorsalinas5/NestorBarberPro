@@ -1,10 +1,10 @@
 import React from 'react';
-import type { BarberShop } from '../types';
+import type { BarberShopWithUser } from '../types';
 import { BarberShopListItem } from './BarberShopListItem';
 
 interface BarberShopListProps {
-  barberShops: BarberShop[];
-  onUpdateStatus: (shopId: string, status: BarberShop['status']) => void;
+  barberShops: BarberShopWithUser[];
+  onUpdateStatus: (shopId: string, status: BarberShopWithUser['status']) => void;
 }
 
 export const BarberShopList: React.FC<BarberShopListProps> = ({ barberShops, onUpdateStatus }) => {
