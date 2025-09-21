@@ -5,6 +5,7 @@ import { ClientBookingView } from './components/ClientBookingView';
 import { LoginPage } from './components/LoginPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { BarberDashboard } from './components/BarberDashboard';
+import { ShopSelectionView } from './components/ShopSelectionView'; // Import the new component
 import { supabase } from './services/supabaseClient';
 import * as authService from './services/auth';
 import type { Session } from '@supabase/supabase-js';
@@ -18,6 +19,7 @@ function App() {
   const [adminBarberShops, setAdminBarberShops] = useState<BarberShopWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'booking' | 'login'>('booking');
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(null); // New state for client view
 
   const fetchClientData = async () => {
     const { data: shopsData, error: shopsError } = await supabase
@@ -53,6 +55,7 @@ function App() {
     const initializeApp = async (session: Session | null) => {
       setIsLoading(true);
       if (session?.user) {
+        setSelectedShopId(null); // Reset client selection on login
         const userProfile = await authService.getUserProfile(session.user.id);
         setProfile(userProfile);
         if (userProfile?.role === 'Admin') {
@@ -78,12 +81,18 @@ function App() {
       (_event: string, session: Session | null) => {
         setSession(session);
         initializeApp(session);
-        if (!session) setView('booking');
+        if (!session) {
+          setView('booking');
+          setSelectedShopId(null); // Reset shop selection on logout
+        }
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
+  
+  const handleSelectShop = (shopId: string) => setSelectedShopId(shopId);
+  const handleReturnToShopSelection = () => setSelectedShopId(null);
 
   const handleLogout = async () => {
     await authService.signOut();
@@ -228,8 +237,8 @@ function App() {
     }
   };
 
-  const activeShopForClient = barberShops.find(s => s.status === 'Activa');
   const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
+  const clientSelectedShop = barberShops.find(s => s.id === selectedShopId);
 
   if (isLoading) {
     return (
@@ -265,26 +274,25 @@ function App() {
       return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
     }
     
-    // User is not logged in
+    // User is not logged in (Client View)
     if (view === 'login') {
       return <LoginPage />;
     }
 
-    if (activeShopForClient) {
-      const clientBookings = bookings.filter(b => b.barber_shop_id === activeShopForClient.id)
+    if (clientSelectedShop) {
+      const clientBookings = bookings.filter(b => b.barber_shop_id === clientSelectedShop.id)
       return <ClientBookingView 
-               barberShop={activeShopForClient}
+               barberShop={clientSelectedShop}
                bookings={clientBookings} 
-               onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: activeShopForClient.id})} 
+               onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: clientSelectedShop.id})}
+               onReturnToShopSelection={handleReturnToShopSelection}
              />;
     }
-    
-    return (
-      <div className="text-center p-16 bg-brand-surface rounded-lg">
-        <h2 className="text-2xl font-bold text-brand-primary">No hay barberías disponibles</h2>
-        <p className="text-brand-text-secondary mt-2">Por favor, vuelva a intentarlo más tarde.</p>
-      </div>
-    );
+
+    return <ShopSelectionView 
+             barberShops={barberShops} 
+             onSelectShop={handleSelectShop} 
+           />;
   };
   
   return (
@@ -294,8 +302,8 @@ function App() {
           user={session?.user ?? null}
           onNavigateToLogin={handleNavigateToLogin}
           onLogout={handleLogout}
-          barberShopName={activeShopForClient?.name}
-          slogan={activeShopForClient?.slogan}
+          barberShopName={clientSelectedShop?.name || loggedInBarberShop?.name}
+          slogan={clientSelectedShop?.slogan || loggedInBarberShop?.slogan}
         />
         <div className="mt-8">{renderContent()}</div>
       </main>
