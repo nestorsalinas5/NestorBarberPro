@@ -7,7 +7,7 @@ export const useBookingLogic = (
   onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => Promise<boolean>
 ) => {
   const [step, setStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,8 +56,20 @@ export const useBookingLogic = (
   }, [selectedDate, generateTimeSlots]);
 
   const handleServiceSelect = (service: Service) => {
-    setSelectedService(service);
-    setStep(2);
+    setSelectedServices(prev => {
+        const isSelected = prev.find(s => s.id === service.id);
+        if (isSelected) {
+            return prev.filter(s => s.id !== service.id);
+        } else {
+            return [...prev, service];
+        }
+    });
+  };
+
+  const handleConfirmServices = () => {
+    if (selectedServices.length > 0) {
+        setStep(2);
+    }
   };
 
   const handleDateSelect = (date: Date) => {
@@ -72,12 +84,12 @@ export const useBookingLogic = (
   };
 
   const handleBookingSubmit = async (customerDetails: { name: string; email: string; phone?: string }) => {
-    if (!selectedService || !selectedDate || !selectedTimeSlot) return;
+    if (selectedServices.length === 0 || !selectedDate || !selectedTimeSlot) return;
 
     setIsSubmitting(true);
     
     const bookingData = {
-      service: selectedService,
+      service: selectedServices,
       date: selectedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD string for DB
       time: selectedTimeSlot.time,
       customer: customerDetails,
@@ -93,7 +105,7 @@ export const useBookingLogic = (
 
   const handleReset = () => {
     setStep(1);
-    setSelectedService(null);
+    setSelectedServices([]);
     setSelectedDate(null);
     setSelectedTimeSlot(null);
     setIsConfirmed(false);
@@ -101,13 +113,14 @@ export const useBookingLogic = (
 
   return {
     step,
-    selectedService,
+    selectedServices,
     selectedDate,
     selectedTimeSlot,
     timeSlots,
     isSubmitting,
     isConfirmed,
     handleServiceSelect,
+    handleConfirmServices,
     handleDateSelect,
     handleTimeSlotSelect,
     handleBookingSubmit,
