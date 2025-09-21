@@ -68,7 +68,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     html2canvas(reportElement, { 
       backgroundColor: '#1E1E1E', 
       scale: 2,
-      useCORS: true // This is the crucial fix for external images
+      useCORS: true
     }).then((canvas: HTMLCanvasElement) => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -77,7 +77,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`reporte-${reportDate.getFullYear()}-${reportDate.getMonth() + 1}.pdf`);
       setIsExporting(false);
-    }).catch(err => {
+    }).catch((err: any) => {
         console.error("Error generating PDF:", err);
         alert("Ocurrió un error al generar el PDF. Revisa la consola para más detalles.");
         setIsExporting(false);
