@@ -1,130 +1,180 @@
-import { useState } from 'react';
-import type { User, Role, Booking, BarberShop, Service } from './types';
+import { useState, useEffect } from 'react';
+import type { Booking, BarberShop, Service, Profile } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
 import { ClientBookingView } from './components/ClientBookingView';
 import { LoginPage } from './components/LoginPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { BarberDashboard } from './components/BarberDashboard';
-import { initialBarberShopsData, initialBookingsData } from './constants';
+import { supabase } from './services/supabaseClient';
+import * as authService from './services/auth';
+import type { Session, User as AuthUser } from '@supabase/supabase-js';
 
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>(initialBookingsData);
-  const [barberShops, setBarberShops] = useState<BarberShop[]>(initialBarberShopsData);
-  const [currentPage, setCurrentPage] = useState<'booking' | 'login' | 'dashboard'>('booking');
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [barberShops, setBarberShops] = useState<BarberShop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [view, setView] = useState<'booking' | 'login'>('booking');
 
-  const handleLogin = (role: Role) => {
-    // In a real app, user would be associated with a specific barber shop
-    const loggedInUser: User = {
-      name: role === 'Admin' ? 'Admin User' : 'Barbero Nestor',
-      role: role,
-      barberShopId: role === 'Barber' ? 'BS-1' : undefined,
-    };
-    setUser(loggedInUser);
-    setCurrentPage('dashboard');
-  };
+  useEffect(() => {
+    const fetchInitialData = async (user: AuthUser | null) => {
+      setIsLoading(true);
+      
+      const { data: shopsData, error: shopsError } = await supabase
+        .from('barber_shops')
+        .select('*');
+      if (shopsError) console.error('Error fetching barber shops:', shopsError);
+      else setBarberShops(shopsData || []);
 
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentPage('booking');
-  };
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*');
+      if (bookingsError) console.error('Error fetching bookings:', bookingsError);
+      else setBookings(bookingsData as Booking[] || []);
 
-  const handleNavigateToLogin = () => {
-    setCurrentPage('login');
-  };
-
-  const handleBookingConfirmed = (bookingData: Omit<Booking, 'id' | 'status'>) => {
-    const newBooking: Booking = {
-      ...bookingData,
-      id: `BK-${Date.now()}`, // Simple unique ID generation
-      status: 'Confirmada',
-    };
-    setBookings(prevBookings => [...prevBookings, newBooking]);
-    // The UI will show a confirmation modal, and the user can reset the flow from there.
-  };
-
-  const handleUpdateBookingStatus = (bookingId: string, status: Booking['status']) => {
-    setBookings(prevBookings =>
-      prevBookings.map(b => (b.id === bookingId ? { ...b, status } : b))
-    );
-  };
-
-  const handleAddBarberShop = (name: string) => {
-    const newShop: BarberShop = {
-      id: `BS-${Date.now()}`,
-      name,
-      status: 'Activa',
-      services: [], // Start with no services
-      schedule: { // Default schedule
-        weekdayConfig: { startHour: 9, endHour: 18, slotInterval: 30 },
-        weekendSlots: 20
+      if (user) {
+        const userProfile = await authService.getUserProfile(user.id);
+        setProfile(userProfile);
+      } else {
+        setProfile(null);
       }
+      
+      setIsLoading(false);
     };
-    setBarberShops(prevShops => [...prevShops, newShop]);
+
+    authService.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      fetchInitialData(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        fetchInitialData(session?.user ?? null);
+        if (!session) setView('booking');
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await authService.signOut();
+    setView('booking');
   };
 
-  const handleUpdateBarberShopStatus = (shopId: string, status: BarberShop['status']) => {
-    setBarberShops(prevShops => 
-      prevShops.map(s => s.id === shopId ? { ...s, status } : s)
-    );
-  };
-  
-  const handleUpdateBarberShopServices = (shopId: string, updatedServices: Service[]) => {
-    setBarberShops(prevShops => 
-      prevShops.map(s => s.id === shopId ? { ...s, services: updatedServices } : s)
-    );
+  const handleNavigateToLogin = () => setView('login');
+
+  const handleBookingConfirmed = async (bookingData: Omit<Booking, 'id' | 'status' | 'created_at'>) => {
+    const { data, error } = await supabase.from('bookings').insert([bookingData]).select();
+    if (error) {
+      console.error('Error creating booking:', error);
+    } else if (data) {
+      setBookings(prev => [...prev, data[0] as Booking]);
+    }
   };
 
-  // For client view, find the first active barber shop to display
+  const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({ status })
+      .eq('id', bookingId)
+      .select();
+    if (error) {
+      console.error('Error updating booking status:', error);
+    } else if (data) {
+      setBookings(prev => prev.map(b => (b.id === bookingId ? (data[0] as Booking) : b)));
+    }
+  };
+
+  const handleAddBarberShop = async (name: string) => {
+    const newShopData = { name, status: 'Activa' as const, services: [], schedule: { weekdayConfig: { startHour: 9, endHour: 18, slotInterval: 30 }, weekend_slots_count: 20 } };
+    const { data, error } = await supabase.from('barber_shops').insert([newShopData]).select();
+    if (error) console.error('Error adding barber shop:', error);
+    else if (data) setBarberShops(prev => [...prev, data[0]]);
+  };
+
+  const handleUpdateBarberShopStatus = async (shopId: string, status: BarberShop['status']) => {
+    const { data, error } = await supabase.from('barber_shops').update({ status }).eq('id', shopId).select();
+    if (error) console.error('Error updating shop status:', error);
+    else if (data) setBarberShops(prev => prev.map(s => (s.id === shopId ? data[0] : s)));
+  };
+
+  const handleUpdateBarberShopServices = async (shopId: string, updatedServices: Service[]) => {
+    const { data, error } = await supabase.from('barber_shops').update({ services: updatedServices }).eq('id', shopId).select();
+    if (error) console.error('Error updating services:', error);
+    else if (data) setBarberShops(prev => prev.map(s => (s.id === shopId ? data[0] : s)));
+  };
+
   const activeShopForClient = barberShops.find(s => s.status === 'Activa');
-  
-  // For barber view, find the shop associated with the logged-in user
-  const loggedInBarberShop = barberShops.find(s => s.id === user?.barberShopId);
+  const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Cargando NestorBarberPro...
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
+  const renderContent = () => {
+    if (session && profile) { // User is logged in
+      if (profile.role === 'Admin') {
+        return <AdminDashboard 
+                 barberShops={barberShops}
+                 onAddBarberShop={handleAddBarberShop}
+                 onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
+               />;
+      }
+      if (profile.role === 'Barber' && loggedInBarberShop) {
+        return <BarberDashboard
+                 barberShop={loggedInBarberShop}
+                 bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)}
+                 onUpdateBookingStatus={handleUpdateBookingStatus}
+                 onUpdateServices={handleUpdateBarberShopServices}
+               />;
+      }
+      return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
+    }
+    
+    // User is not logged in
+    if (view === 'login') {
+      return <LoginPage />;
+    }
+
+    if (activeShopForClient) {
+      return <ClientBookingView 
+               barberShop={activeShopForClient}
+               bookings={bookings.filter(b => b.barber_shop_id === activeShopForClient.id)} 
+               onBookingConfirmed={handleBookingConfirmed} 
+             />;
+    }
+    
+    return (
+      <div className="text-center p-16 bg-brand-surface rounded-lg">
+        <h2 className="text-2xl font-bold text-brand-primary">No hay barberías disponibles</h2>
+        <p className="text-brand-text-secondary mt-2">Por favor, vuelva a intentarlo más tarde.</p>
+      </div>
+    );
+  };
+  
   return (
     <div className="bg-brand-bg text-brand-text min-h-screen font-sans">
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <BarberShopHeader 
-          user={user}
+          user={session?.user ?? null}
           onNavigateToLogin={handleNavigateToLogin}
           onLogout={handleLogout}
           barberShopName={activeShopForClient?.name}
           slogan={activeShopForClient?.slogan}
         />
-        <div className="mt-8">
-          {currentPage === 'booking' && activeShopForClient && (
-            <ClientBookingView 
-              barberShop={activeShopForClient}
-              bookings={bookings} 
-              onBookingConfirmed={handleBookingConfirmed} 
-            />
-          )}
-          {currentPage === 'booking' && !activeShopForClient && (
-             <div className="text-center p-16 bg-brand-surface rounded-lg">
-                <h2 className="text-2xl font-bold text-brand-primary">No hay barberías disponibles</h2>
-                <p className="text-brand-text-secondary mt-2">Por favor, vuelva a intentarlo más tarde.</p>
-            </div>
-          )}
-          {currentPage === 'login' && (
-            <LoginPage onLogin={handleLogin} />
-          )}
-          {currentPage === 'dashboard' && user?.role === 'Admin' && (
-            <AdminDashboard 
-              barberShops={barberShops}
-              onAddBarberShop={handleAddBarberShop}
-              onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
-            />
-          )}
-          {currentPage === 'dashboard' && user?.role === 'Barber' && loggedInBarberShop && (
-            <BarberDashboard 
-              barberShop={loggedInBarberShop}
-              bookings={bookings} 
-              onUpdateBookingStatus={handleUpdateBookingStatus} 
-              onUpdateServices={handleUpdateBarberShopServices}
-            />
-          )}
-        </div>
+        <div className="mt-8">{renderContent()}</div>
       </main>
     </div>
   );
