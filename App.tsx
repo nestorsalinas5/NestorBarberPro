@@ -215,6 +215,15 @@ function App() {
     else setExpenses(prev => prev.filter(e => e.id !== expenseId));
   };
 
+  const handleUpdateClient = async (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => {
+    const { data, error } = await supabase.from('clients').update({ name: clientData.name, email: clientData.email, phone: clientData.phone }).eq('id', clientData.id).select().single();
+    if (error) { alert(`Error al actualizar cliente: ${error.message}`); }
+    else if (data) {
+      setClients(prev => prev.map(c => c.id === data.id ? data : c));
+      alert('Cliente actualizado con éxito.');
+    }
+  };
+
 
   const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
   const clientSelectedShop = barberShops.find(s => s.id === selectedShopId);
@@ -226,7 +235,7 @@ function App() {
   const renderContent = () => {
     if (session && profile) {
       if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} />;
-      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} />;
+      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} />;
       return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
     }
     
