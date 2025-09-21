@@ -4,7 +4,7 @@ import type { Service, TimeSlot, Booking, ScheduleConfig } from '../types';
 export const useBookingLogic = (
   bookings: Booking[],
   schedule: ScheduleConfig,
-  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => void
+  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => Promise<boolean>
 ) => {
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -83,11 +83,12 @@ export const useBookingLogic = (
       customer: customerDetails,
     };
     
-    // In a real app, you'd also pass the barber_shop_id here
-    await onBookingConfirmed(bookingData as any);
+    const success = await onBookingConfirmed(bookingData as any);
     
     setIsSubmitting(false);
-    setIsConfirmed(true);
+    if (success) {
+      setIsConfirmed(true);
+    }
   };
 
   const handleReset = () => {
