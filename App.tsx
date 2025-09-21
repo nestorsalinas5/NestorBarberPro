@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { User, Role, Booking, BarberShop, Service } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
 import { ClientBookingView } from './components/ClientBookingView';
