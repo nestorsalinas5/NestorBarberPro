@@ -115,16 +115,29 @@ function App() {
   };
 
   const handleAddBarberShopAndUser = async (details: { name: string; email: string; password: string }) => {
-    // Step 1: Create the user using the new, simple RPC function
-    const { data: newUserId, error: userError } = await supabase.rpc('create_auth_user', {
-      email: details.email,
-      password: details.password
+    // Step 1: Create the user by calling the new, secure Edge Function
+    const { data: functionData, error: functionError } = await supabase.functions.invoke('create-barber-user', {
+        body: { email: details.email, password: details.password },
     });
 
-    if (userError || !newUserId) {
-      console.error('Error creating user:', userError);
-      alert(`Error al crear el usuario: ${userError?.message || 'No se recibió ID.'}`);
-      return;
+    if (functionError) {
+        console.error('Error invoking edge function:', functionError);
+        alert(`Error al contactar el servidor para crear el usuario: ${functionError.message}`);
+        return;
+    }
+
+    // The function itself might return an error in its data payload (e.g., user already exists)
+    if (functionData.error) {
+        console.error('Error from function:', functionData.error);
+        alert(`Error al crear el usuario: ${functionData.error}`);
+        return;
+    }
+
+    const newUserId = functionData.userId;
+    if (!newUserId) {
+        console.error('User creation successful but no ID was returned.');
+        alert('Error inesperado: El usuario se creó pero no se recibió su ID.');
+        return;
     }
 
     // Step 2: Create the barber shop
