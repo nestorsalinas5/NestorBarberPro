@@ -65,7 +65,11 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     const reportElement = pdfReportRef.current;
     if (!reportElement) return;
     setIsExporting(true);
-    html2canvas(reportElement, { backgroundColor: '#1E1E1E', scale: 2 }).then((canvas: HTMLCanvasElement) => {
+    html2canvas(reportElement, { 
+      backgroundColor: '#1E1E1E', 
+      scale: 2,
+      useCORS: true // This is the crucial fix for external images
+    }).then((canvas: HTMLCanvasElement) => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -73,6 +77,10 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`reporte-${reportDate.getFullYear()}-${reportDate.getMonth() + 1}.pdf`);
       setIsExporting(false);
+    }).catch(err => {
+        console.error("Error generating PDF:", err);
+        alert("Ocurrió un error al generar el PDF. Revisa la consola para más detalles.");
+        setIsExporting(false);
     });
   };
 
@@ -142,7 +150,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     <div className="hidden">
         <div ref={pdfReportRef} className="p-10 bg-brand-surface text-brand-text" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Inter' }}>
             <header className="flex justify-between items-center mb-10 border-b-2 border-brand-primary pb-4">
-                {barberShop.logo_url && <img src={barberShop.logo_url} alt="logo" style={{width: '80px', height: '80px', borderRadius: '8px'}}/>}
+                {barberShop.logo_url && <img src={barberShop.logo_url} alt="logo" style={{width: '80px', height: '80px', borderRadius: '8px'}} crossOrigin="anonymous"/>}
                 <div className="text-right">
                     <h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Reporte Mensual</h1>
                     <p className="text-brand-text-secondary">{barberShop.name}</p>
