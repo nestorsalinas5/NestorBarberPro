@@ -63,7 +63,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ bookings, expenses
   const handleExportPDF = () => {
     if (!reportRef.current) return;
     setIsExporting(true);
-    html2canvas(reportRef.current, { backgroundColor: '#1E1E1E', scale: 2 }).then(canvas => {
+    html2canvas(reportRef.current, { backgroundColor: '#1E1E1E', scale: 2 }).then((canvas: HTMLCanvasElement) => {
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
