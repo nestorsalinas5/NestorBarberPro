@@ -20,8 +20,11 @@ export const initialBarberShopsData: BarberShop[] = [
     services: initialServicesData,
     schedule: {
       weekdayConfig: { startHour: 9, endHour: 19, slotInterval: 30 },
-      weekendSlots: 20
-    }
+      // FIX: Renamed 'weekendSlots' to 'weekend_slots_count' to match the ScheduleConfig type.
+      weekend_slots_count: 20
+    },
+    // FIX: Added missing 'created_at' property to conform to the BarberShop type.
+    created_at: new Date().toISOString(),
   },
   { 
     id: 'BS-2', 
@@ -35,8 +38,11 @@ export const initialBarberShopsData: BarberShop[] = [
     ],
     schedule: {
       weekdayConfig: { startHour: 10, endHour: 20, slotInterval: 20 },
-      weekendSlots: 25
-    }
+      // FIX: Renamed 'weekendSlots' to 'weekend_slots_count' to match the ScheduleConfig type.
+      weekend_slots_count: 25
+    },
+    // FIX: Added missing 'created_at' property to conform to the BarberShop type.
+    created_at: new Date().toISOString(),
   },
   { 
     id: 'BS-3', 
@@ -49,26 +55,37 @@ export const initialBarberShopsData: BarberShop[] = [
     ],
     schedule: {
       weekdayConfig: { startHour: 8, endHour: 17, slotInterval: 30 },
-      weekendSlots: 15
-    }
+      // FIX: Renamed 'weekendSlots' to 'weekend_slots_count' to match the ScheduleConfig type.
+      weekend_slots_count: 15
+    },
+    // FIX: Added missing 'created_at' property to conform to the BarberShop type.
+    created_at: new Date().toISOString(),
   },
 ];
 
 export const initialBookingsData: Booking[] = [
   {
     id: 'BK-1',
+    // FIX: Added missing 'barber_shop_id' and 'created_at' properties to conform to the Booking type.
+    barber_shop_id: 'BS-1',
     service: initialServicesData[0],
-    date: new Date(),
+    // FIX: Changed Date object to a 'YYYY-MM-DD' string to match the Booking type.
+    date: new Date().toISOString().split('T')[0],
     time: '10:00',
     customer: { name: 'Juan Pérez', email: 'juan.perez@example.com' },
     status: 'Confirmada',
+    created_at: new Date().toISOString(),
   },
   {
     id: 'BK-2',
+    // FIX: Added missing 'barber_shop_id' and 'created_at' properties to conform to the Booking type.
+    barber_shop_id: 'BS-1',
     service: initialServicesData[1],
-    date: new Date(),
+    // FIX: Changed Date object to a 'YYYY-MM-DD' string to match the Booking type.
+    date: new Date().toISOString().split('T')[0],
     time: '11:30',
     customer: { name: 'Carlos Gómez', email: 'carlos.gomez@example.com' },
     status: 'Confirmada',
+    created_at: new Date().toISOString(),
   },
 ];
