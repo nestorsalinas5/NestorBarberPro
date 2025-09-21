@@ -4,6 +4,7 @@ import type { Booking, Service } from '../types';
 interface BookingListItemProps {
   booking: Booking;
   onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => void;
+  onSelect: (booking: Booking) => void;
 }
 
 const statusStyles: Record<Booking['status'], { bg: string, text: string, border: string }> = {
@@ -12,20 +13,26 @@ const statusStyles: Record<Booking['status'], { bg: string, text: string, border
   'Cancelada': { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/30' },
 };
 
-export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpdateBookingStatus }) => {
+export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpdateBookingStatus, onSelect }) => {
   const { bg, text, border } = statusStyles[booking.status];
   
-  // FIX: Handle both old (single service object) and new (array of services) data structures.
-  // This prevents the ".map is not a function" error for old bookings.
   const serviceNames = Array.isArray(booking.service)
     ? booking.service.map(s => s.name).join(', ')
     : (booking.service as unknown as Service)?.name || 'Servicio no especificado';
 
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation(); // Prevent modal from opening when clicking action buttons
+    action();
+  };
+
   return (
-    <div className={`p-4 rounded-lg border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${bg} ${border}`}>
+    <button 
+      onClick={() => onSelect(booking)}
+      className={`w-full text-left p-4 rounded-lg border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all duration-200 hover:shadow-lg hover:border-brand-primary/50 ${bg} ${border}`}
+    >
       <div className="flex-grow">
         <div className="flex items-center gap-4">
-           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${bg} ${text}`}>
+           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${bg} ${text} border ${border}`}>
             {booking.status}
           </span>
           <p className="font-bold text-lg text-brand-text">{booking.customer.name}</p>
@@ -37,21 +44,21 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpd
       </div>
       
       {booking.status === 'Confirmada' && (
-        <div className="flex gap-2 self-end sm:self-center">
+        <div className="flex gap-2 self-end sm:self-center flex-shrink-0">
           <button 
-            onClick={() => onUpdateBookingStatus(booking.id, 'Cancelada')}
+            onClick={(e) => handleActionClick(e, () => onUpdateBookingStatus(booking.id, 'Cancelada'))}
             className="px-3 py-1 text-xs font-semibold rounded-md bg-red-500/20 text-red-300 hover:bg-red-500/40 transition-colors"
           >
             Cancelar
           </button>
           <button 
-            onClick={() => onUpdateBookingStatus(booking.id, 'Completada')}
+            onClick={(e) => handleActionClick(e, () => onUpdateBookingStatus(booking.id, 'Completada'))}
             className="px-3 py-1 text-xs font-semibold rounded-md bg-green-500/20 text-green-300 hover:bg-green-500/40 transition-colors"
           >
             Completar
           </button>
         </div>
       )}
-    </div>
+    </button>
   );
 };
