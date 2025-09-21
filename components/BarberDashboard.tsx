@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { Booking, BarberShop, Service } from '../types';
 import { BookingList } from './BookingList';
 import { BarberSettingsView } from './BarberSettingsView';
+import { AgendaCalendarView } from './AgendaCalendarView'; // Import the new component
 
 interface BarberDashboardProps {
   barberShop: BarberShop;
@@ -13,7 +14,8 @@ interface BarberDashboardProps {
 type Tab = 'agenda' | 'settings';
 
 export const BarberDashboard: React.FC<BarberDashboardProps> = ({ barberShop, bookings, onUpdateBookingStatus, onUpdateServices }) => {
-  const [selectedDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState<Tab>('agenda');
 
   const filteredBookings = useMemo(() => {
@@ -59,32 +61,50 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = ({ barberShop, bo
         <TabButton tabId="settings">Configuración</TabButton>
       </div>
 
-      <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8">
-        {activeTab === 'agenda' && (
-          <>
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-2xl font-bold text-brand-text">Agenda del Día</h3>
-                <p className="text-sm text-brand-text-secondary">
-                  {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-              <div className="text-right">
-                  <div className="text-4xl font-bold text-brand-text">{filteredBookings.length}</div>
-                  <div className="text-sm text-brand-text-secondary">Citas Agendadas</div>
-              </div>
-            </div>
-            <BookingList bookings={filteredBookings} onUpdateBookingStatus={onUpdateBookingStatus} />
-          </>
-        )}
+      {activeTab === 'agenda' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Calendar */}
+          <div className="lg:col-span-2 bg-brand-surface rounded-lg shadow-2xl p-6">
+            <AgendaCalendarView 
+              bookings={bookings}
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              currentMonth={currentMonth}
+              setCurrentMonth={setCurrentMonth}
+            />
+          </div>
 
-        {activeTab === 'settings' && (
-          <BarberSettingsView 
-            barberShop={barberShop}
-            onUpdateServices={onUpdateServices}
-          />
-        )}
-      </div>
+          {/* Right Column: Appointments for selected day */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 bg-brand-surface rounded-lg shadow-2xl p-6">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-brand-text capitalize">
+                    {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+                  </h3>
+                  <p className="text-sm text-brand-text-secondary">
+                    {selectedDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+                <div className="text-right">
+                    <div className="text-3xl font-bold text-brand-primary">{filteredBookings.length}</div>
+                    <div className="text-xs text-brand-text-secondary">Citas</div>
+                </div>
+              </div>
+              <BookingList bookings={filteredBookings} onUpdateBookingStatus={onUpdateBookingStatus} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8">
+            <BarberSettingsView 
+                barberShop={barberShop}
+                onUpdateServices={onUpdateServices}
+            />
+        </div>
+      )}
     </div>
   );
 };
