@@ -50,7 +50,7 @@ function App() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (_event: string, session: Session | null) => {
         setSession(session);
         fetchInitialData(session?.user ?? null);
         if (!session) setView('booking');
