@@ -1,7 +1,7 @@
 import React from 'react';
 import type { BarberShop } from '../types';
 import { ShopCard } from './ShopCard';
-import { PoweredByFooter } from './PoweredByFooter.tsx';
+import { PoweredByFooter } from './PoweredByFooter';
 
 interface ShopSelectionViewProps {
   barberShops: BarberShop[];
