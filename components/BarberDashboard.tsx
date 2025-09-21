@@ -7,6 +7,7 @@ import { ClientManagementView } from './ClientManagementView';
 import { ReportingView } from './ReportingView';
 import { BookingDetailModal } from './BookingDetailModal';
 import { PoweredByFooter } from './PoweredByFooter';
+import { LicenseWarningBanner } from './LicenseWarningBanner';
 
 interface BarberDashboardProps {
   barberShop: BarberShop;
@@ -47,6 +48,8 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
   return (
     <>
     <div className="animate-fade-in">
+      <LicenseWarningBanner licenseExpiresAt={barberShop.license_expires_at} />
+
       <div className="flex justify-between items-center mb-2">
         <div>
           <h2 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Panel del Barbero</h2>
