@@ -5,9 +5,10 @@ import { BarberShopListItem } from './BarberShopListItem';
 interface BarberShopListProps {
   barberShops: BarberShopWithUser[];
   onUpdateStatus: (shopId: string, status: BarberShopWithUser['status']) => void;
+  onManageLicense: (shop: BarberShopWithUser) => void;
 }
 
-export const BarberShopList: React.FC<BarberShopListProps> = ({ barberShops, onUpdateStatus }) => {
+export const BarberShopList: React.FC<BarberShopListProps> = ({ barberShops, onUpdateStatus, onManageLicense }) => {
   if (barberShops.length === 0) {
     return (
       <div className="text-center py-16">
@@ -24,6 +25,7 @@ export const BarberShopList: React.FC<BarberShopListProps> = ({ barberShops, onU
           key={shop.id}
           barberShop={shop}
           onUpdateStatus={onUpdateStatus}
+          onManageLicense={onManageLicense}
         />
       ))}
     </div>
