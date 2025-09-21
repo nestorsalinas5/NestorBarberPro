@@ -1,8 +1,8 @@
 import React from 'react';
-import type { User } from '../types';
+import type { AuthUser } from '../types';
 
 interface BarberShopHeaderProps {
-  user: User | null;
+  user: AuthUser | null;
   onNavigateToLogin: () => void;
   onLogout: () => void;
   barberShopName?: string;
@@ -25,10 +25,11 @@ export const BarberShopHeader: React.FC<BarberShopHeaderProps> = ({ user, onNavi
         <div>
           {user ? (
             <div className="text-right">
-              <p className="text-brand-text-secondary">Bienvenido, <span className="font-bold text-brand-text">{user.name}</span></p>
+              <p className="text-brand-text-secondary">Conectado como</p>
+              <p className="font-bold text-brand-text break-all">{user.email}</p>
               <button 
                 onClick={onLogout}
-                className="mt-1 text-sm text-brand-primary hover:text-brand-secondary transition-colors"
+                className="mt-2 text-sm text-brand-primary hover:text-brand-secondary transition-colors"
               >
                 Cerrar Sesión
               </button>
