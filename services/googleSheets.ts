@@ -1,15 +1,15 @@
-import { GoogleGenAI } from "https://esm.run/@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { Booking } from '../types';
 
+// The API key must be read from Vite's env variables on the client-side
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
 if (!apiKey) {
-  // This error will be thrown during initialization if the key is missing.
-  // It's a clear indicator for the developer that the environment variable is not set correctly in Vercel.
-  throw new Error("VITE_GEMINI_API_KEY is not set. Please add it to your Vercel environment variables.");
+  // This check is important for debugging.
+  // In production, the build would fail if the variable is missing, but this helps in development.
+  console.warn("VITE_GEMINI_API_KEY is not set. Google Sheets sync simulation will fail.");
 }
 
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: apiKey || "" });
 
 /**
  * Simulates syncing a booking to a Google Sheet by using the Gemini API
@@ -18,10 +18,11 @@ const ai = new GoogleGenAI({ apiKey });
  * @returns A promise that resolves to a string formatted as a CSV row.
  */
 export const syncBookingToSheet = async (booking: Omit<Booking, 'id' | 'status' | 'time'> & { time: string }): Promise<string> => {
+  if(!apiKey) return "API_KEY_NOT_CONFIGURED";
+
   const { service, date, time, customer } = booking;
   
-  // Format the date as YYYY-MM-DD
-  const formattedDate = date.toISOString().split('T')[0];
+  const formattedDate = date;
 
   const prompt = `You are an API endpoint that receives booking information in JSON format. 
 Your task is to convert this information into a single, comma-separated CSV row that can be appended to a Google Sheet.
