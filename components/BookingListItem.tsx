@@ -14,6 +14,7 @@ const statusStyles: Record<Booking['status'], { bg: string, text: string, border
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpdateBookingStatus }) => {
   const { bg, text, border } = statusStyles[booking.status];
+  const serviceNames = booking.service.map(s => s.name).join(', ');
 
   return (
     <div className={`p-4 rounded-lg border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${bg} ${border}`}>
@@ -25,7 +26,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpd
           <p className="font-bold text-lg text-brand-text">{booking.customer.name}</p>
         </div>
         <div className="mt-2 text-sm text-brand-text-secondary pl-2 border-l-2 border-gray-700">
-           <p><span className="font-semibold">{booking.time}</span> - {booking.service.name}</p>
+           <p><span className="font-semibold">{booking.time}</span> - {serviceNames}</p>
            <p className="text-xs">{booking.customer.email}</p>
         </div>
       </div>
