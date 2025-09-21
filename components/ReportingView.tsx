@@ -61,27 +61,73 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     }
   };
   
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const reportElement = pdfReportRef.current;
     if (!reportElement) return;
+
     setIsExporting(true);
-    html2canvas(reportElement, { 
-      backgroundColor: '#1E1E1E', 
-      scale: 2,
-      useCORS: true
-    }).then((canvas: HTMLCanvasElement) => {
+
+    try {
+      // To handle cross-origin images robustly, we clone the element,
+      // fetch the logo, convert it to a Data URI, and then capture.
+      const elementToRender = reportElement.cloneNode(true) as HTMLDivElement;
+      
+      if (barberShop.logo_url) {
+        const logoImgElement = elementToRender.querySelector('img');
+        if (logoImgElement) {
+          try {
+            // Fetch the image
+            const response = await fetch(barberShop.logo_url);
+            if (!response.ok) throw new Error('Logo image could not be fetched.');
+            const blob = await response.blob();
+
+            // Convert blob to Data URI
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            
+            // Set the new source and wait for it to load
+            logoImgElement.src = dataUrl;
+            await new Promise<void>((resolve) => {
+              logoImgElement.onload = () => resolve();
+              logoImgElement.onerror = () => resolve(); // Resolve on error too to avoid hanging
+            });
+
+          } catch (imgError) {
+            console.error("Could not process logo for PDF, proceeding without it.", imgError);
+          }
+        }
+      }
+
+      // Temporarily append the clone to the DOM to ensure styles are computed correctly.
+      elementToRender.style.position = 'absolute';
+      elementToRender.style.left = '-9999px';
+      document.body.appendChild(elementToRender);
+
+      const canvas = await html2canvas(elementToRender, {
+        backgroundColor: '#1E1E1E',
+        scale: 2,
+      });
+
+      // Clean up the cloned node from the DOM
+      document.body.removeChild(elementToRender);
+      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`reporte-${reportDate.getFullYear()}-${reportDate.getMonth() + 1}.pdf`);
-      setIsExporting(false);
-    }).catch((err: any) => {
+
+    } catch (err: any) {
         console.error("Error generating PDF:", err);
         alert("Ocurrió un error al generar el PDF. Revisa la consola para más detalles.");
+    } finally {
         setIsExporting(false);
-    });
+    }
   };
 
   const getServiceNames = (services: Service[] | Service) => {
@@ -150,7 +196,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     <div className="hidden">
         <div ref={pdfReportRef} className="p-10 bg-brand-surface text-brand-text" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Inter' }}>
             <header className="flex justify-between items-center mb-10 border-b-2 border-brand-primary pb-4">
-                {barberShop.logo_url && <img src={barberShop.logo_url} alt="logo" style={{width: '80px', height: '80px', borderRadius: '8px'}} crossOrigin="anonymous"/>}
+                {barberShop.logo_url && <img src={barberShop.logo_url} alt="logo" style={{width: '80px', height: '80px', borderRadius: '8px'}} />}
                 <div className="text-right">
                     <h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Reporte Mensual</h1>
                     <p className="text-brand-text-secondary">{barberShop.name}</p>
