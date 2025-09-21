@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BarberShop } from '../types';
 import { ShopCard } from './ShopCard';
+import { PoweredByFooter } from './PoweredByFooter';
 
 interface ShopSelectionViewProps {
   barberShops: BarberShop[];
@@ -34,6 +35,8 @@ export const ShopSelectionView: React.FC<ShopSelectionViewProps> = ({ barberShop
             <p className="text-brand-text-secondary mt-2">Por favor, vuelva a intentarlo más tarde.</p>
         </div>
       )}
+
+      <PoweredByFooter />
     </div>
   );
 };
