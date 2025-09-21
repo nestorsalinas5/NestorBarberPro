@@ -7,7 +7,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { BarberDashboard } from './components/BarberDashboard';
 import { supabase } from './services/supabaseClient';
 import * as authService from './services/auth';
-import type { Session, User as AuthUser } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 
 
 function App() {
@@ -147,6 +147,21 @@ function App() {
     }
   };
 
+  const handleUpdateBarberShopLicense = async (shopId: string, license: { type: BarberShop['license_type']; expiresAt: string | null }) => {
+    const { data, error } = await supabase
+      .from('barber_shops')
+      .update({ license_type: license.type, license_expires_at: license.expiresAt })
+      .eq('id', shopId)
+      .select()
+      .single();
+    if (error) {
+      console.error('Error updating shop license:', error);
+    } else if (data) {
+      // Update the local state to reflect the change immediately
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, license_type: data.license_type, license_expires_at: data.license_expires_at } : s)));
+    }
+  };
+
   const activeShopForClient = barberShops.find(s => s.status === 'Activa');
   const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
 
@@ -170,6 +185,7 @@ function App() {
                  bookings={bookings}
                  onAddBarberShopAndUser={handleAddBarberShopAndUser}
                  onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
+                 onUpdateBarberShopLicense={handleUpdateBarberShopLicense}
                />;
       }
       if (profile.role === 'Barber' && loggedInBarberShop) {
