@@ -115,18 +115,59 @@ function App() {
   };
 
   const handleAddBarberShopAndUser = async (details: { name: string; email: string; password: string }) => {
-    const { error } = await supabase.rpc('create_barbershop_with_user', {
-      shop_name: details.name,
-      user_email: details.email,
-      user_password: details.password
+    // Step 1: Create the user using the new, simple RPC function
+    const { data: newUserId, error: userError } = await supabase.rpc('create_auth_user', {
+      email: details.email,
+      password: details.password
     });
-    if (error) {
-      console.error('Error creating barber shop and user:', error);
-      alert(`Error: ${error.message}`);
-    } else {
-      // Refetch admin data to show the new shop
-      await fetchAdminData();
+
+    if (userError || !newUserId) {
+      console.error('Error creating user:', userError);
+      alert(`Error al crear el usuario: ${userError?.message || 'No se recibió ID.'}`);
+      return;
     }
+
+    // Step 2: Create the barber shop
+    const { data: newShop, error: shopError } = await supabase
+      .from('barber_shops')
+      .insert({
+        name: details.name,
+        status: 'Activa',
+        license_type: 'Trial',
+        license_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+        services: [],
+        schedule: {
+          weekdayConfig: { startHour: 9, endHour: 18, slotInterval: 30 },
+          weekend_slots_count: 10
+        }
+      })
+      .select('id')
+      .single();
+
+    if (shopError || !newShop) {
+      console.error('Error creating barber shop:', shopError);
+      alert(`Se creó el usuario pero hubo un error al crear la barbería: ${shopError?.message}. Por favor, asigna la barbería manualmente.`);
+      return;
+    }
+
+    // Step 3: Create the user's profile to link user and shop
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: newUserId,
+        role: 'Barber',
+        barber_shop_id: newShop.id
+      });
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      alert(`Usuario y barbería creados, pero falló la asignación: ${profileError.message}. Por favor, asigna el perfil manualmente.`);
+      return;
+    }
+
+    // Everything was successful, refetch data
+    alert('Barbería y usuario creados y asignados con éxito.');
+    await fetchAdminData();
   };
 
   const handleUpdateBarberShopStatus = async (shopId: string, status: BarberShop['status']) => {
