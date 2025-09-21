@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "https://aistudiocdn.com/google-genai-sdk@0.0.3";
+import { GoogleGenAI } from "https://esm.run/@google/genai";
 import type { Booking } from '../types';
 
 // FIX: Aligned with Gemini API guidelines by removing `as string`. Assumes API_KEY is set in the environment.
