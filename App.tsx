@@ -164,7 +164,6 @@ function App() {
     }
 
     // Step 3: UPDATE the user's existing profile to link user and shop
-    // This avoids the "duplicate key" error if a trigger auto-creates profiles.
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
@@ -195,11 +194,22 @@ function App() {
   };
 
   const handleUpdateBarberShopServices = async (shopId: string, updatedServices: Service[]) => {
-    const { data, error } = await supabase.from('barber_shops').update({ services: updatedServices }).eq('id', shopId).select().single();
+    const { data, error } = await supabase
+      .from('barber_shops')
+      .update({ services: updatedServices })
+      .eq('id', shopId)
+      .select()
+      .single();
+
     if (error) {
       console.error('Error updating services:', error);
+      alert(`Error al guardar los cambios: ${error.message}. Es probable que falte una política de seguridad (RLS) para la actualización en tu base de datos.`);
     } else if (data) {
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? data : s)));
+      const updatedShop = data as BarberShop;
+      // Update both state lists to ensure consistency
+      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, ...updatedShop } : s)));
+      alert('Servicios actualizados con éxito.');
     }
   };
 
