@@ -4,6 +4,7 @@ import type { BarberShopWithUser } from '../types';
 interface BarberShopListItemProps {
   barberShop: BarberShopWithUser;
   onUpdateStatus: (shopId: string, status: BarberShopWithUser['status']) => void;
+  onManageLicense: (shop: BarberShopWithUser) => void;
 }
 
 const statusStyles: Record<BarberShopWithUser['status'], { indicator: string, text: string }> = {
@@ -11,13 +12,35 @@ const statusStyles: Record<BarberShopWithUser['status'], { indicator: string, te
   'Suspendida': { indicator: 'bg-red-500', text: 'text-red-400' },
 };
 
-export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus }) => {
+export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus, onManageLicense }) => {
   const { indicator, text } = statusStyles[barberShop.status];
   const isSuspended = barberShop.status === 'Suspendida';
 
+  const getLicenseStatus = () => {
+    if (!barberShop.license_type || !barberShop.license_expires_at) {
+        return { text: 'Sin Licencia', color: 'text-yellow-500' };
+    }
+    const expires = new Date(barberShop.license_expires_at);
+    const now = new Date();
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(now.getDate() + 7);
+
+    const formattedDate = expires.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    
+    if (expires < now) {
+        return { text: `Expiró el ${formattedDate}`, color: 'text-red-400' };
+    }
+    if (expires < sevenDaysFromNow) {
+        return { text: `Expira el ${formattedDate}`, color: 'text-yellow-500' };
+    }
+    return { text: `${barberShop.license_type} - Vence ${formattedDate}`, color: 'text-green-400' };
+  };
+
+  const licenseStatus = getLicenseStatus();
+
   return (
-    <div className="bg-black/20 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition-colors hover:bg-black/40">
-      <div>
+    <div className="bg-black/20 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors hover:bg-black/40">
+      <div className="flex-grow">
         <p className="font-bold text-lg text-brand-text">{barberShop.name}</p>
         <div className="flex items-center gap-2 mt-1">
           <span className={`h-2 w-2 rounded-full ${indicator}`}></span>
@@ -28,8 +51,17 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
         ) : (
            <p className="text-xs text-yellow-500 mt-2 pl-1">Sin usuario asignado</p>
         )}
+         <p className={`text-xs mt-1 pl-1 font-semibold ${licenseStatus.color}`}>
+            {licenseStatus.text}
+        </p>
       </div>
-      <div className="self-end sm:self-center">
+      <div className="self-end sm:self-center flex items-center gap-2">
+        <button
+            onClick={() => onManageLicense(barberShop)}
+            className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors"
+        >
+            Licencia
+        </button>
         {isSuspended ? (
           <button
             onClick={() => onUpdateStatus(barberShop.id, 'Activa')}
