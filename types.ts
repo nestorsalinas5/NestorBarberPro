@@ -57,9 +57,33 @@ export interface BarberShop {
   created_at: string;
   license_type: 'Trial' | 'Mensual' | 'Anual' | null;
   license_expires_at: string | null;
+  logo_url?: string | null;
 }
 
 // Type for the admin view, combining BarberShop with user info from an RPC call
 export interface BarberShopWithUser extends BarberShop {
   user_email: string | null;
+}
+
+// NEW: Client table matches public.clients
+export interface Client {
+  id: string;
+  barber_shop_id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  total_bookings: number;
+  last_visit?: string | null;
+  created_at: string;
+}
+
+// NEW: Expense table matches public.expenses
+export interface Expense {
+  id: string;
+  barber_shop_id: string;
+  description: string;
+  amount: number;
+  category?: string | null;
+  date: string;
+  created_at: string;
 }
