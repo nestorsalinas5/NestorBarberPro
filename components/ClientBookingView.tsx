@@ -18,13 +18,14 @@ interface ClientBookingViewProps {
 export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection }) => {
   const {
     step,
-    selectedService,
+    selectedServices,
     selectedDate,
     selectedTimeSlot,
     timeSlots,
     isSubmitting,
     isConfirmed,
     handleServiceSelect,
+    handleConfirmServices,
     handleDateSelect,
     handleTimeSlotSelect,
     handleBookingSubmit,
@@ -34,7 +35,12 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
   const getStepComponent = () => {
     switch (step) {
       case 1:
-        return <ServiceSelector services={barberShop.services} onSelectService={handleServiceSelect} selectedService={selectedService} />;
+        return <ServiceSelector 
+                 services={barberShop.services} 
+                 onSelectService={handleServiceSelect} 
+                 selectedServices={selectedServices}
+                 onConfirm={handleConfirmServices} 
+               />;
       case 2:
         return <DatePicker selectedDate={selectedDate} onDateSelect={handleDateSelect} />;
       case 3:
@@ -48,7 +54,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return "1. Selecciona un Servicio";
+      case 1: return "1. Selecciona tus Servicios";
       case 2: return "2. Elige una Fecha";
       case 3: return "3. Escoge un Horario";
       case 4: return "4. Confirma tus Datos";
@@ -76,7 +82,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
           
           <aside className="md:col-span-1 p-6 md:p-8 bg-black/20">
             <BookingSummary 
-              service={selectedService}
+              services={selectedServices}
               date={selectedDate}
               timeSlot={selectedTimeSlot}
             />
@@ -91,7 +97,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
       <ConfirmationModal
         isOpen={isConfirmed}
         onClose={handleReset}
-        service={selectedService}
+        services={selectedServices}
         date={selectedDate}
         timeSlot={selectedTimeSlot}
       />
