@@ -42,11 +42,12 @@ function App() {
     else setBookings(bookingsData as Booking[] || []);
   };
 
-  const fetchBarberData = useCallback(async (shopId: string) => {
+  const fetchBarberData = useCallback(async (shopId: string): Promise<BarberShop | null> => {
     // Fetch barber shop details
-    const { data: shopsData, error: shopsError } = await supabase.from('barber_shops').select('*').eq('id', shopId);
-    if (shopsError) console.error('Error fetching barber shop:', shopsError);
-    else setBarberShops(shopsData || []);
+    const { data: shopData, error: shopError } = await supabase.from('barber_shops').select('*').eq('id', shopId).single();
+    if (shopError) { console.error('Error fetching barber shop:', shopError); return null; }
+    
+    setBarberShops([shopData]);
 
     // Fetch bookings for the shop
     const { data: bookingsData, error: bookingsError } = await supabase.from('bookings').select('*').eq('barber_shop_id', shopId);
@@ -62,6 +63,8 @@ function App() {
     const { data: expensesData, error: expensesError } = await supabase.from('expenses').select('*').eq('barber_shop_id', shopId);
     if (expensesError) console.error('Error fetching expenses:', expensesError);
     else setExpenses(expensesData || []);
+
+    return shopData;
   }, []);
 
 
@@ -72,10 +75,26 @@ function App() {
         setSelectedShopId(null);
         const userProfile = await authService.getUserProfile(session.user.id);
         setProfile(userProfile);
+
         if (userProfile?.role === 'Admin') {
           await fetchAdminData();
         } else if (userProfile?.role === 'Barber' && userProfile.barber_shop_id) {
-          await fetchBarberData(userProfile.barber_shop_id);
+          const barberShop = await fetchBarberData(userProfile.barber_shop_id);
+          
+          // CRITICAL: Security check for license and status
+          if (barberShop) {
+            const isSuspended = barberShop.status === 'Suspendida';
+            const licenseExpired = barberShop.license_expires_at ? new Date(barberShop.license_expires_at) < new Date() : true;
+            
+            if (isSuspended) {
+              alert('Tu cuenta ha sido suspendida. Por favor, contacta al administrador.');
+              await authService.signOut();
+            } else if (licenseExpired) {
+              alert('Tu licencia ha expirado. Por favor, contacta al administrador para renovarla.');
+              await authService.signOut();
+            }
+          }
+
         } else {
            await fetchClientData();
         }
@@ -162,6 +181,22 @@ function App() {
     await fetchAdminData();
   };
 
+  const handleDeleteBarberShopAndUser = async (shopId: string, userId: string) => {
+    const { data, error } = await supabase.functions.invoke('delete-barber-user', {
+      body: { shopId, userId },
+    });
+
+    if (error || data.error) {
+      const err = error || data.error;
+      console.error('Error deleting barber shop and user:', err);
+      alert(`Error al eliminar: ${err.message || err}`);
+      return;
+    }
+    alert('Barbería y usuario eliminados con éxito.');
+    await fetchAdminData();
+  };
+
+
   const handleUpdateBarberShopStatus = async (shopId: string, status: BarberShop['status']) => {
     const { data, error } = await supabase.from('barber_shops').update({ status }).eq('id', shopId).select().single();
     if (error) console.error('Error updating shop status:', error);
@@ -234,7 +269,7 @@ function App() {
 
   const renderContent = () => {
     if (session && profile) {
-      if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} />;
+      if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} onDeleteBarberShop={handleDeleteBarberShopAndUser} />;
       if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} />;
       return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
     }
