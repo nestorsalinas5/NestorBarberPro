@@ -6,8 +6,8 @@ import { BarberSettingsView } from './BarberSettingsView';
 interface BarberDashboardProps {
   barberShop: BarberShop;
   bookings: Booking[];
-  onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => void;
-  onUpdateServices: (shopId: string, services: Service[]) => void;
+  onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
+  onUpdateServices: (shopId: string, services: Service[]) => Promise<void>;
 }
 
 type Tab = 'agenda' | 'settings';
@@ -19,7 +19,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = ({ barberShop, bo
   const filteredBookings = useMemo(() => {
     const todayString = selectedDate.toISOString().split('T')[0];
     return bookings
-      .filter(b => b.date.toISOString().split('T')[0] === todayString)
+      .filter(b => b.date === todayString)
       .sort((a, b) => a.time.localeCompare(b.time)); // Sort by time
   }, [bookings, selectedDate]);
 
