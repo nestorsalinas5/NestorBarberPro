@@ -1,6 +1,15 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { Service, TimeSlot, Booking, ScheduleConfig } from '../types';
 
+// Helper function to convert "HH:mm" time string to minutes from midnight for easier calculation.
+const timeToMinutes = (time: string): number => {
+  // Handles both "15:00" and "Cupo X" formats. Weekend slots are not time-based so they won't be converted.
+  if (!time.includes(':')) return -1; 
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+
 export const useBookingLogic = (
   bookings: Booking[],
   schedule: ScheduleConfig,
@@ -13,17 +22,23 @@ export const useBookingLogic = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  const totalDurationOfSelectedServices = useMemo(() => {
+    return selectedServices.reduce((total, s) => total + s.duration, 0);
+  }, [selectedServices]);
+
+
   const generateTimeSlots = useCallback((date: Date): TimeSlot[] => {
-    if (!date) return [];
-    
+    if (!date || totalDurationOfSelectedServices === 0) return [];
+
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
-    const todaysBooked = bookings
-      .filter(b => b.date === dateString && b.status !== 'Cancelada')
-      .map(b => b.time);
-    
-    // Friday (5) or Saturday (6)
-    if (day === 5 || day === 6) { 
+
+    // Weekend logic is slot-based, not time-based, so it remains simpler.
+    if (day === 5 || day === 6) {
+      const todaysBooked = bookings
+        .filter(b => b.date === dateString && b.status !== 'Cancelada')
+        .map(b => b.time);
+      
       const slots: TimeSlot[] = [];
       for (let i = 0; i < schedule.weekend_slots_count; i++) {
         const slotLabel = `Cupo ${i + 1}`;
@@ -33,23 +48,59 @@ export const useBookingLogic = (
         });
       }
       return slots;
-    } else { // Monday to Thursday
-      const slots: TimeSlot[] = [];
-      const { startHour, endHour, slotInterval } = schedule.weekdayConfig;
-      for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += slotInterval) {
-          const d = new Date(date);
-          d.setHours(hour, minute, 0, 0);
-          const time = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', hour12: false });
-          slots.push({
-            time: time,
-            isAvailable: !todaysBooked.includes(time),
-          });
-        }
-      }
-      return slots;
     }
-  }, [bookings, schedule]);
+
+    // Weekday logic: duration-aware conflict detection
+    // 1. Get all booked time ranges for the day in minutes.
+    const bookedRanges = bookings
+      .filter(b => b.date === dateString && b.status !== 'Cancelada' && b.time.includes(':'))
+      .map(b => {
+        const startTime = timeToMinutes(b.time);
+        // Handle both old (single service) and new (array of services) data structures
+        const bookingDuration = Array.isArray(b.service)
+          ? b.service.reduce((acc, s) => acc + s.duration, 0)
+          : (b.service as any).duration || 30; // Fallback for old data
+        const endTime = startTime + bookingDuration;
+        return { start: startTime, end: endTime };
+      });
+
+    // 2. Generate potential slots and check for overlaps.
+    const potentialSlots: TimeSlot[] = [];
+    const { startHour, endHour, slotInterval } = schedule.weekdayConfig;
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += slotInterval) {
+        const slotStartMinutes = hour * 60 + minute;
+        const slotEndMinutes = slotStartMinutes + totalDurationOfSelectedServices;
+
+        // Don't create slots that would end after the barber shop closes.
+        if (slotEndMinutes > endHour * 60) {
+          continue;
+        }
+
+        // 3. Check for overlaps with existing bookings.
+        let isAvailable = true;
+        for (const bookedRange of bookedRanges) {
+          // An overlap occurs if (StartA < EndB) and (EndA > StartB).
+          if (slotStartMinutes < bookedRange.end && slotEndMinutes > bookedRange.start) {
+            isAvailable = false;
+            break; // An overlap was found, so this slot is unavailable.
+          }
+        }
+
+        const d = new Date(date);
+        d.setHours(hour, minute, 0, 0);
+        const timeString = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+        potentialSlots.push({
+          time: timeString,
+          isAvailable,
+        });
+      }
+    }
+
+    return potentialSlots;
+  }, [bookings, schedule, totalDurationOfSelectedServices]);
   
   const timeSlots = useMemo(() => {
     return selectedDate ? generateTimeSlots(selectedDate) : [];
