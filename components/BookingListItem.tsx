@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Booking } from '../types';
+import type { Booking, Service } from '../types';
 
 interface BookingListItemProps {
   booking: Booking;
@@ -14,7 +14,12 @@ const statusStyles: Record<Booking['status'], { bg: string, text: string, border
 
 export const BookingListItem: React.FC<BookingListItemProps> = ({ booking, onUpdateBookingStatus }) => {
   const { bg, text, border } = statusStyles[booking.status];
-  const serviceNames = booking.service.map(s => s.name).join(', ');
+  
+  // FIX: Handle both old (single service object) and new (array of services) data structures.
+  // This prevents the ".map is not a function" error for old bookings.
+  const serviceNames = Array.isArray(booking.service)
+    ? booking.service.map(s => s.name).join(', ')
+    : (booking.service as unknown as Service)?.name || 'Servicio no especificado';
 
   return (
     <div className={`p-4 rounded-lg border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${bg} ${border}`}>
