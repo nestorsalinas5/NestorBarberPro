@@ -11,7 +11,7 @@ import type { Booking, BarberShop } from '../types';
 interface ClientBookingViewProps {
   barberShop: BarberShop;
   bookings: Booking[];
-  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => void;
+  onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => Promise<boolean>;
   onReturnToShopSelection: () => void; // New prop for navigation
 }
 
