@@ -2,22 +2,24 @@ import React from 'react';
 import type { Service, TimeSlot } from '../types';
 
 interface BookingSummaryProps {
-  service: Service | null;
+  services: Service[];
   date: Date | null;
   timeSlot: TimeSlot | null;
 }
 
 const SummaryItem: React.FC<{ label: string; value: string | null }> = ({ label, value }) => (
-  <div className="flex justify-between items-center py-3">
-    <span className="text-sm text-brand-text-secondary">{label}</span>
-    <span className="text-sm font-semibold text-brand-text">{value || '...'}</span>
+  <div className="flex justify-between items-start py-3">
+    <span className="text-sm text-brand-text-secondary flex-shrink-0">{label}</span>
+    <span className="text-sm font-semibold text-brand-text text-right">{value || '...'}</span>
   </div>
 );
 
-export const BookingSummary: React.FC<BookingSummaryProps> = ({ service, date, timeSlot }) => {
+export const BookingSummary: React.FC<BookingSummaryProps> = ({ services, date, timeSlot }) => {
   const formattedDate = date ? date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : null;
   const capitalizedDate = formattedDate ? formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1) : null;
-
+  
+  const totalPrice = services.reduce((total, s) => total + s.price, 0);
+  const totalDuration = services.reduce((total, s) => total + s.duration, 0);
 
   return (
     <div className="sticky top-8">
@@ -25,13 +27,31 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ service, date, t
         Tu Cita
       </h3>
       <div className="space-y-2 divide-y divide-gray-700/50">
-        <SummaryItem label="Servicio" value={service?.name || 'No seleccionado'} />
+        
+        <div className="py-3">
+          <span className="text-sm text-brand-text-secondary">Servicios</span>
+          {services.length > 0 ? (
+            <ul className="mt-2 space-y-1 text-right">
+              {services.map(s => (
+                <li key={s.id} className="text-sm font-semibold text-brand-text flex justify-between">
+                  <span>{s.name}</span>
+                  <span>₲{s.price.toLocaleString('es-PY')}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+             <p className="text-sm font-semibold text-brand-text text-right">No seleccionado</p>
+          )}
+        </div>
+
+        <SummaryItem label="Duración Total" value={services.length > 0 ? `${totalDuration} minutos` : null} />
         <SummaryItem label="Fecha" value={capitalizedDate} />
         <SummaryItem label="Hora" value={timeSlot?.time || null} />
+
         <div className="flex justify-between items-center pt-4">
           <span className="text-lg font-bold text-brand-text-secondary">Total</span>
           <span className="text-2xl font-bold text-brand-primary">
-            ₲{service ? service.price.toLocaleString('es-PY') : '0'}
+            ₲{totalPrice.toLocaleString('es-PY')}
           </span>
         </div>
       </div>
