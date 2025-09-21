@@ -7,20 +7,26 @@ interface BarberShopHeaderProps {
   onLogout: () => void;
   barberShopName?: string;
   slogan?: string;
+  logoUrl?: string | null;
 }
 
-export const BarberShopHeader: React.FC<BarberShopHeaderProps> = ({ user, onNavigateToLogin, onLogout, barberShopName, slogan }) => {
+export const BarberShopHeader: React.FC<BarberShopHeaderProps> = ({ user, onNavigateToLogin, onLogout, barberShopName, slogan, logoUrl }) => {
   return (
     <header>
       <div className="flex justify-between items-start">
-        <div className="text-left">
-          <h1 
-            className="text-4xl sm:text-5xl font-bold text-brand-primary" 
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            {barberShopName || 'NestorBarberPro'}
-          </h1>
-          {slogan && <p className="mt-1 text-lg text-brand-text-secondary">{slogan}</p>}
+        <div className="flex items-center gap-4">
+          {logoUrl && (
+            <img src={logoUrl} alt={`${barberShopName} logo`} className="h-16 w-16 rounded-md object-cover" />
+          )}
+          <div className="text-left">
+            <h1 
+              className="text-4xl sm:text-5xl font-bold text-brand-primary" 
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              {barberShopName || 'NestorBarberPro'}
+            </h1>
+            {slogan && <p className="mt-1 text-lg text-brand-text-secondary">{slogan}</p>}
+          </div>
         </div>
         <div>
           {user ? (
