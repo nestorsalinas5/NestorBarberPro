@@ -1,9 +1,12 @@
-export type Role = 'Admin' | 'Barber';
+import type { User as AuthUser } from '@supabase/supabase-js';
 
-export interface User {
-  name: string;
-  role: Role;
-  barberShopId?: string; // Associates a barber user with their shop
+export type { AuthUser };
+
+// Profile table matches our custom public.profiles table
+export interface Profile {
+  id: string; // Foreign key to auth.users.id
+  role: 'Admin' | 'Barber';
+  barber_shop_id?: string | null; // Foreign key to barber_shops.id
 }
 
 export interface Service {
@@ -18,10 +21,12 @@ export interface TimeSlot {
   isAvailable: boolean;
 }
 
+// Booking table matches public.bookings
 export interface Booking {
   id: string;
+  barber_shop_id: string;
   service: Service;
-  date: Date;
+  date: string; // Stored as 'YYYY-MM-DD'
   time: string;
   customer: {
     name: string;
@@ -29,6 +34,7 @@ export interface Booking {
     phone?: string;
   };
   status: 'Confirmada' | 'Completada' | 'Cancelada';
+  created_at: string;
 }
 
 export interface ScheduleConfig {
@@ -36,15 +42,17 @@ export interface ScheduleConfig {
     startHour: number;
     endHour: number;
     slotInterval: number;
-  },
-  weekendSlots: number;
+  };
+  weekend_slots_count: number;
 }
 
+// BarberShop table matches public.barber_shops
 export interface BarberShop {
   id: string;
-  name:string;
+  name: string;
   slogan?: string;
   status: 'Activa' | 'Suspendida';
   services: Service[];
   schedule: ScheduleConfig;
+  created_at: string;
 }
