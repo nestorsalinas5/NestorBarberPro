@@ -36,7 +36,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             <p><strong className="text-brand-text-secondary w-16 inline-block">Hora:</strong> {timeSlot?.time}</p>
           </div>
           <div className="mt-4 pt-3 border-t border-gray-700/50 text-center">
-            <p className="text-xs text-green-400">✅ Sincronizado con la agenda</p>
+            {/* The sync process now happens automatically on the backend. */}
           </div>
         </div>
 
