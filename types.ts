@@ -25,7 +25,7 @@ export interface TimeSlot {
 export interface Booking {
   id: string;
   barber_shop_id: string;
-  service: Service;
+  service: Service[]; // Changed to accept multiple services
   date: string; // Stored as 'YYYY-MM-DD'
   time: string;
   customer: {
