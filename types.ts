@@ -56,3 +56,8 @@ export interface BarberShop {
   schedule: ScheduleConfig;
   created_at: string;
 }
+
+// Type for the admin view, combining BarberShop with user info from an RPC call
+export interface BarberShopWithUser extends BarberShop {
+  user_email: string | null;
+}
