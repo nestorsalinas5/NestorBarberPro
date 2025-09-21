@@ -7,6 +7,7 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { BookingSummary } from './BookingSummary';
 import { useBookingLogic } from '../hooks/useBookingLogic';
 import type { Booking, BarberShop } from '../types';
+import { PoweredByFooter } from './PoweredByFooter';
 
 interface ClientBookingViewProps {
   barberShop: BarberShop;
@@ -90,9 +91,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
         </div>
       </div>
       
-      <footer className="text-center mt-8 text-brand-text-secondary text-sm">
-        <p>Potenciado por NestorBarberPro</p>
-      </footer>
+      <PoweredByFooter />
 
       <ConfirmationModal
         isOpen={isConfirmed}
