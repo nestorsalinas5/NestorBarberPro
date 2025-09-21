@@ -1,2 +1,3 @@
-// This file is intentionally left blank.
-// Module declarations are no longer needed as dependencies are now managed in package.json.
+// Add module declarations for libraries loaded via importmap that don't have types.
+declare module 'jspdf';
+declare module 'html2canvas';
