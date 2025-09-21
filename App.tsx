@@ -163,17 +163,19 @@ function App() {
       return;
     }
 
-    // Step 3: Create the user's profile to link user and shop
+    // Step 3: UPDATE the user's existing profile to link user and shop
+    // This avoids the "duplicate key" error if a trigger auto-creates profiles.
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: newUserId,
+      .update({
         role: 'Barber',
         barber_shop_id: newShop.id
-      });
+      })
+      .eq('id', newUserId);
+
 
     if (profileError) {
-      console.error('Error creating profile:', profileError);
+      console.error('Error updating profile:', profileError);
       alert(`Usuario y barbería creados, pero falló la asignación: ${profileError.message}. Por favor, asigna el perfil manualmente.`);
       return;
     }
