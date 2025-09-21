@@ -5,6 +5,7 @@ interface BarberShopListItemProps {
   barberShop: BarberShopWithUser;
   onUpdateStatus: (shopId: string, status: BarberShopWithUser['status']) => void;
   onManageLicense: (shop: BarberShopWithUser) => void;
+  onDelete: (shop: BarberShopWithUser) => void;
 }
 
 const statusStyles: Record<BarberShopWithUser['status'], { indicator: string, text: string }> = {
@@ -12,7 +13,7 @@ const statusStyles: Record<BarberShopWithUser['status'], { indicator: string, te
   'Suspendida': { indicator: 'bg-red-500', text: 'text-red-400' },
 };
 
-export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus, onManageLicense }) => {
+export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus, onManageLicense, onDelete }) => {
   const { indicator, text } = statusStyles[barberShop.status];
   const isSuspended = barberShop.status === 'Suspendida';
 
@@ -55,7 +56,7 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
             {licenseStatus.text}
         </p>
       </div>
-      <div className="self-end sm:self-center flex items-center gap-2">
+      <div className="self-end sm:self-center flex items-center flex-wrap gap-2">
         <button
             onClick={() => onManageLicense(barberShop)}
             className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors"
@@ -77,6 +78,12 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
             Suspender
           </button>
         )}
+        <button
+            onClick={() => onDelete(barberShop)}
+            className="px-3 py-1 text-xs font-semibold rounded-md bg-gray-600/20 text-gray-400 hover:bg-red-500/40 hover:text-red-300 transition-colors"
+        >
+            Eliminar
+        </button>
       </div>
     </div>
   );
