@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Booking, BarberShop, Service, Profile } from './types';
+import type { Booking, BarberShop, Service, Profile, BarberShopWithUser } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
 import { ClientBookingView } from './components/ClientBookingView';
 import { LoginPage } from './components/LoginPage';
@@ -15,44 +15,69 @@ function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [barberShops, setBarberShops] = useState<BarberShop[]>([]);
+  const [adminBarberShops, setAdminBarberShops] = useState<BarberShopWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'booking' | 'login'>('booking');
 
+  const fetchClientData = async () => {
+    const { data: shopsData, error: shopsError } = await supabase
+      .from('barber_shops')
+      .select('*')
+      .eq('status', 'Activa');
+    if (shopsError) console.error('Error fetching active barber shops:', shopsError);
+    else setBarberShops(shopsData || []);
+  };
+
+  const fetchAdminData = async () => {
+    const { data: shopsData, error: shopsError } = await supabase.rpc('get_barbershops_with_users');
+    if (shopsError) console.error('Error fetching admin barber shops:', shopsError);
+    else setAdminBarberShops(shopsData || []);
+
+    const { data: bookingsData, error: bookingsError } = await supabase.from('bookings').select('*');
+    if (bookingsError) console.error('Error fetching all bookings:', bookingsError);
+    else setBookings(bookingsData as Booking[] || []);
+  };
+
+  const fetchBarberData = async (shopId: string) => {
+    const { data: shopsData, error: shopsError } = await supabase.from('barber_shops').select('*').eq('id', shopId);
+    if (shopsError) console.error('Error fetching barber shop:', shopsError);
+    else setBarberShops(shopsData || []);
+
+    const { data: bookingsData, error: bookingsError } = await supabase.from('bookings').select('*').eq('barber_shop_id', shopId);
+    if (bookingsError) console.error('Error fetching barber bookings:', bookingsError);
+    else setBookings(bookingsData as Booking[] || []);
+  };
+
+
   useEffect(() => {
-    const fetchInitialData = async (user: AuthUser | null) => {
+    const initializeApp = async (session: Session | null) => {
       setIsLoading(true);
-      
-      const { data: shopsData, error: shopsError } = await supabase
-        .from('barber_shops')
-        .select('*');
-      if (shopsError) console.error('Error fetching barber shops:', shopsError);
-      else setBarberShops(shopsData || []);
-
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*');
-      if (bookingsError) console.error('Error fetching bookings:', bookingsError);
-      else setBookings(bookingsData as Booking[] || []);
-
-      if (user) {
-        const userProfile = await authService.getUserProfile(user.id);
+      if (session?.user) {
+        const userProfile = await authService.getUserProfile(session.user.id);
         setProfile(userProfile);
+        if (userProfile?.role === 'Admin') {
+          await fetchAdminData();
+        } else if (userProfile?.role === 'Barber' && userProfile.barber_shop_id) {
+          await fetchBarberData(userProfile.barber_shop_id);
+        } else {
+           await fetchClientData();
+        }
       } else {
         setProfile(null);
+        await fetchClientData();
       }
-      
       setIsLoading(false);
     };
 
     authService.getSession().then(({ data: { session } }) => {
       setSession(session);
-      fetchInitialData(session?.user ?? null);
+      initializeApp(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event: string, session: Session | null) => {
         setSession(session);
-        fetchInitialData(session?.user ?? null);
+        initializeApp(session);
         if (!session) setView('booking');
       }
     );
@@ -89,23 +114,37 @@ function App() {
     }
   };
 
-  const handleAddBarberShop = async (name: string) => {
-    const newShopData = { name, status: 'Activa' as const, services: [], schedule: { weekdayConfig: { startHour: 9, endHour: 18, slotInterval: 30 }, weekend_slots_count: 20 } };
-    const { data, error } = await supabase.from('barber_shops').insert([newShopData]).select();
-    if (error) console.error('Error adding barber shop:', error);
-    else if (data) setBarberShops(prev => [...prev, data[0]]);
+  const handleAddBarberShopAndUser = async (details: { name: string; email: string; password: string }) => {
+    const { error } = await supabase.rpc('create_barbershop_with_user', {
+      shop_name: details.name,
+      user_email: details.email,
+      user_password: details.password
+    });
+    if (error) {
+      console.error('Error creating barber shop and user:', error);
+      alert(`Error: ${error.message}`);
+    } else {
+      // Refetch admin data to show the new shop
+      await fetchAdminData();
+    }
   };
 
   const handleUpdateBarberShopStatus = async (shopId: string, status: BarberShop['status']) => {
-    const { data, error } = await supabase.from('barber_shops').update({ status }).eq('id', shopId).select();
-    if (error) console.error('Error updating shop status:', error);
-    else if (data) setBarberShops(prev => prev.map(s => (s.id === shopId ? data[0] : s)));
+    const { data, error } = await supabase.from('barber_shops').update({ status }).eq('id', shopId).select().single();
+    if (error) {
+      console.error('Error updating shop status:', error);
+    } else if (data) {
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, status: data.status } : s)));
+    }
   };
 
   const handleUpdateBarberShopServices = async (shopId: string, updatedServices: Service[]) => {
-    const { data, error } = await supabase.from('barber_shops').update({ services: updatedServices }).eq('id', shopId).select();
-    if (error) console.error('Error updating services:', error);
-    else if (data) setBarberShops(prev => prev.map(s => (s.id === shopId ? data[0] : s)));
+    const { data, error } = await supabase.from('barber_shops').update({ services: updatedServices }).eq('id', shopId).select().single();
+    if (error) {
+      console.error('Error updating services:', error);
+    } else if (data) {
+      setBarberShops(prev => prev.map(s => (s.id === shopId ? data : s)));
+    }
   };
 
   const activeShopForClient = barberShops.find(s => s.status === 'Activa');
@@ -127,8 +166,9 @@ function App() {
     if (session && profile) { // User is logged in
       if (profile.role === 'Admin') {
         return <AdminDashboard 
-                 barberShops={barberShops}
-                 onAddBarberShop={handleAddBarberShop}
+                 barberShops={adminBarberShops}
+                 bookings={bookings}
+                 onAddBarberShopAndUser={handleAddBarberShopAndUser}
                  onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
                />;
       }
@@ -149,10 +189,11 @@ function App() {
     }
 
     if (activeShopForClient) {
+      const clientBookings = bookings.filter(b => b.barber_shop_id === activeShopForClient.id)
       return <ClientBookingView 
                barberShop={activeShopForClient}
-               bookings={bookings.filter(b => b.barber_shop_id === activeShopForClient.id)} 
-               onBookingConfirmed={handleBookingConfirmed} 
+               bookings={clientBookings} 
+               onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: activeShopForClient.id})} 
              />;
     }
     
