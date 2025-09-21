@@ -102,17 +102,36 @@ function App() {
   const handleNavigateToLogin = () => setView('login');
 
   const handleBookingConfirmed = async (bookingData: Omit<Booking, 'id' | 'status' | 'created_at'>): Promise<boolean> => {
-    const { data, error } = await supabase.from('bookings').insert([bookingData]).select();
-    if (error) {
-      console.error('Error creating booking:', error);
-      alert(`Error al confirmar la reserva: ${error.message}. Es probable que falte una política de seguridad (RLS) en la base de datos para permitir inserciones públicas.`);
+    // Use the new Edge Function to create bookings, bypassing RLS issues.
+    const { data: functionData, error: functionError } = await supabase.functions.invoke('create-booking', {
+      body: bookingData,
+    });
+
+    if (functionError) {
+      console.error('Error invoking create-booking function:', functionError);
+      alert(`Error al contactar el servidor para crear la reserva: ${functionError.message}`);
       return false;
-    } else if (data) {
-      setBookings(prev => [...prev, data[0] as Booking]);
+    }
+    
+    // The function itself might return a structured error from the database
+    if (functionData.error) {
+      console.error('Error from create-booking function:', functionData.error);
+      alert(`Error al crear la reserva: ${functionData.error}. Por favor, inténtalo de nuevo.`);
+      return false;
+    }
+
+    // If successful, the function returns the newly created booking.
+    if (functionData.success && functionData.booking) {
+      setBookings(prev => [...prev, functionData.booking as Booking]);
       return true;
     }
+
+    // Fallback for unexpected responses
+    console.error("Unexpected response from create-booking function", functionData);
+    alert("Se recibió una respuesta inesperada del servidor.");
     return false;
   };
+
 
   const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
     const { data, error } = await supabase
