@@ -6,6 +6,7 @@ import { AgendaCalendarView } from './AgendaCalendarView';
 import { ClientManagementView } from './ClientManagementView';
 import { ReportingView } from './ReportingView';
 import { BookingDetailModal } from './BookingDetailModal';
+import { PoweredByFooter } from './PoweredByFooter';
 
 interface BarberDashboardProps {
   barberShop: BarberShop;
@@ -17,12 +18,13 @@ interface BarberDashboardProps {
   onUploadLogo: (file: File, shopId: string) => Promise<void>;
   onAddExpense: (expenseData: Omit<Expense, 'id' | 'created_at' | 'barber_shop_id'>) => Promise<void>;
   onDeleteExpense: (expenseId: string) => Promise<void>;
+  onUpdateClient: (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => Promise<void>;
 }
 
 type Tab = 'agenda' | 'clients' | 'reports' | 'settings';
 
 export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
-  const { barberShop, bookings, clients, expenses, onUpdateBookingStatus, onUpdateServices, onUploadLogo, onAddExpense, onDeleteExpense } = props;
+  const { barberShop, bookings, clients, expenses, onUpdateBookingStatus, onUpdateServices, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient } = props;
   
   const [activeTab, setActiveTab] = useState<Tab>('agenda');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -78,9 +80,11 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
         </div>
       )}
 
-      {activeTab === 'clients' && <ClientManagementView clients={clients} />}
-      {activeTab === 'reports' && <ReportingView bookings={bookings} expenses={expenses} onAddExpense={onAddExpense} onDeleteExpense={onDeleteExpense} />}
+      {activeTab === 'clients' && <ClientManagementView clients={clients} onUpdateClient={onUpdateClient} />}
+      {activeTab === 'reports' && <ReportingView barberShop={barberShop} bookings={bookings} expenses={expenses} onAddExpense={onAddExpense} onDeleteExpense={onDeleteExpense} />}
       {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUploadLogo={onUploadLogo} />}
+      
+      <PoweredByFooter />
     </div>
 
     <BookingDetailModal booking={selectedBooking} onClose={() => setSelectedBooking(null)} />
