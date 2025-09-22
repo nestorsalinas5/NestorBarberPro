@@ -12,7 +12,7 @@ interface ReportingViewProps {
   onDeleteExpense: (expenseId: string) => Promise<void>;
 }
 
-const TrashIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}> <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /> </svg> );
+const TrashIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}> <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11_0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /> </svg> );
 
 export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookings, expenses, onAddExpense, onDeleteExpense }) => {
   const [reportDate, setReportDate] = useState(new Date());
@@ -147,14 +147,14 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
                 <h3 className="text-2xl font-bold text-brand-text">Reportes y Finanzas</h3>
                 <p className="text-sm text-brand-text-secondary">Analiza el rendimiento de tu negocio mes a mes.</p>
             </div>
-            <div className="flex items-center gap-2">
-                 <input type="month" value={`${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`} onChange={e => setReportDate(new Date(e.target.value))} className="bg-brand-bg border border-gray-600 rounded-md py-2 px-3 text-brand-text"/>
-                 <button onClick={handleExportPDF} disabled={isExporting} className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-bg bg-brand-primary hover:bg-brand-secondary disabled:bg-gray-500">{isExporting ? 'Exportando...' : 'Exportar a PDF'}</button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+                 <input type="month" value={`${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`} onChange={e => setReportDate(new Date(e.target.value))} className="bg-brand-bg border border-gray-600 rounded-md py-2 px-3 text-brand-text w-full"/>
+                 <button onClick={handleExportPDF} disabled={isExporting} className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-bg bg-brand-primary hover:bg-brand-secondary disabled:bg-gray-500 whitespace-nowrap">{isExporting ? '...' : 'Exportar'}</button>
             </div>
         </div>
         
         <div className="p-4 md:p-8 bg-brand-surface">
-            <h4 className="text-xl font-bold text-center text-brand-primary mb-8">Reporte de {reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</h4>
+            <h4 className="text-xl font-bold text-center text-brand-primary mb-8 capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                 <StatCard title="Ingresos Totales" value={`₲${monthlyRevenue.toLocaleString('es-PY')}`} />
                 <StatCard title="Gastos Totales" value={`₲${monthlyExpenses.toLocaleString('es-PY')}`} />
@@ -174,9 +174,9 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
                         <button onClick={() => setShowExpenseForm(!showExpenseForm)} className="text-sm py-1 px-3 bg-brand-primary/20 text-brand-primary rounded-md hover:bg-brand-primary/40">{showExpenseForm ? 'Cancelar' : '+ Añadir Gasto'}</button>
                     </div>
                     {showExpenseForm && (
-                        <form onSubmit={handleAddExpenseSubmit} className="flex gap-2 mb-4 p-3 bg-black/20 rounded-md">
+                        <form onSubmit={handleAddExpenseSubmit} className="flex flex-col sm:flex-row gap-2 mb-4 p-3 bg-black/20 rounded-md">
                             <input type="text" placeholder="Descripción" value={expenseDescription} onChange={e => setExpenseDescription(e.target.value)} required className="flex-grow bg-brand-bg border border-gray-600 rounded-md text-sm p-2"/>
-                            <input type="number" placeholder="Monto" value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} required className="w-28 bg-brand-bg border border-gray-600 rounded-md text-sm p-2"/>
+                            <input type="number" placeholder="Monto" value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} required className="w-full sm:w-28 bg-brand-bg border border-gray-600 rounded-md text-sm p-2"/>
                             <button type="submit" className="py-2 px-3 bg-brand-primary text-brand-bg font-bold rounded-md text-sm">OK</button>
                         </form>
                     )}
@@ -200,7 +200,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
                 <div className="text-right">
                     <h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Reporte Mensual</h1>
                     <p className="text-brand-text-secondary">{barberShop.name}</p>
-                    <p className="text-brand-text-secondary text-lg">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</p>
+                    <p className="text-brand-text-secondary text-lg capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</p>
                 </div>
             </header>
             
