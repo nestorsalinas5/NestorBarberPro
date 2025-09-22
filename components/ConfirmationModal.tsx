@@ -7,6 +7,7 @@ interface ConfirmationModalProps {
   services: Service[];
   date: Date | null;
   timeSlot: TimeSlot | null;
+  googleSyncStatus: 'pending' | 'success' | 'error' | null;
 }
 
 const CheckCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -16,11 +17,24 @@ const CheckCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 );
 
 
-export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, services, date, timeSlot }) => {
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, services, date, timeSlot, googleSyncStatus }) => {
   if (!isOpen) return null;
 
   const formattedDate = date?.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' });
   const capitalizedDate = formattedDate ? formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1) : null;
+
+  const renderSyncStatus = () => {
+    switch (googleSyncStatus) {
+      case 'pending':
+        return <p className="text-sm text-yellow-400">Sincronizando con Google Calendar...</p>;
+      case 'success':
+        return <p className="text-sm text-green-400">✓ Se ha enviado una invitación a tu calendario de Google.</p>;
+      case 'error':
+        return <p className="text-sm text-red-400">✗ Hubo un error al sincronizar con Google Calendar.</p>;
+      default:
+        return null; // Don't show anything until the sync process starts
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
@@ -41,7 +55,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             <p><strong className="text-brand-text-secondary w-16 inline-block">Hora:</strong> {timeSlot?.time}</p>
           </div>
           <div className="mt-4 pt-3 border-t border-gray-700/50 text-center">
-             <p className="text-sm text-green-300">✓ Se ha enviado una invitación a tu calendario de Google.</p>
+             {renderSyncStatus()}
           </div>
         </div>
 
