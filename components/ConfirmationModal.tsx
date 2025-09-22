@@ -10,9 +10,22 @@ interface ConfirmationModalProps {
   googleSyncStatus: 'pending' | 'success' | 'error' | null;
 }
 
+// Icons
 const CheckCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+  </svg>
+);
+
+const ClockIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+  </svg>
+);
+
+const XCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
   </svg>
 );
 
@@ -26,13 +39,28 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
   const renderSyncStatus = () => {
     switch (googleSyncStatus) {
       case 'pending':
-        return <p className="text-sm text-yellow-400">Sincronizando con Google Calendar...</p>;
+        return (
+          <div className="flex items-center justify-center gap-2 text-sm text-yellow-400">
+            <ClockIcon className="w-5 h-5 animate-spin" />
+            <span>Sincronizando con Google Calendar...</span>
+          </div>
+        );
       case 'success':
-        return <p className="text-sm text-green-400">✓ Se ha enviado una invitación a tu calendario de Google.</p>;
+        return (
+          <div className="flex items-center justify-center gap-2 text-sm text-green-400">
+            <CheckCircleIcon className="w-5 h-5" />
+            <span>Se ha enviado una invitación a tu calendario.</span>
+          </div>
+        );
       case 'error':
-        return <p className="text-sm text-red-400">✗ Hubo un error al sincronizar con Google Calendar.</p>;
+        return (
+          <div className="flex items-center justify-center gap-2 text-sm text-red-400">
+            <XCircleIcon className="w-5 h-5" />
+            <span>Hubo un error al sincronizar con Google Calendar.</span>
+          </div>
+        );
       default:
-        return null; // Don't show anything until the sync process starts
+        return null;
     }
   };
 
@@ -54,7 +82,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             <p><strong className="text-brand-text-secondary w-16 inline-block">Fecha:</strong> {capitalizedDate}</p>
             <p><strong className="text-brand-text-secondary w-16 inline-block">Hora:</strong> {timeSlot?.time}</p>
           </div>
-          <div className="mt-4 pt-3 border-t border-gray-700/50 text-center">
+          <div className="mt-4 pt-3 border-t border-gray-700/50 text-center h-6">
              {renderSyncStatus()}
           </div>
         </div>
