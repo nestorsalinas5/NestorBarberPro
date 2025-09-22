@@ -39,11 +39,14 @@ export interface Booking {
 
 export interface ScheduleConfig {
   weekdayConfig: {
-    startHour: number;
-    endHour: number;
-    slotInterval: number;
+    startTime: string; // "HH:mm" format for precision
+    endTime: string;   // "HH:mm" format
+    slotInterval: number; // in minutes
   };
-  weekend_slots_count: number;
+  weekendConfig: {
+    slotsCount: number;
+    startTime: string; // "HH:mm" format
+  };
 }
 
 // BarberShop table matches public.barber_shops
