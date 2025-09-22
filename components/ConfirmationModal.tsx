@@ -27,7 +27,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
       <div className="bg-brand-surface rounded-lg shadow-2xl p-8 max-w-md w-full text-center transform transition-all scale-100">
         <CheckCircleIcon className="w-16 h-16 text-green-400 mx-auto mb-4"/>
         <h2 className="text-2xl font-bold text-brand-primary mb-2">¡Reserva Confirmada!</h2>
-        <p className="text-brand-text-secondary mb-6">Tu cita está agendada. Hemos enviado una confirmación a tu correo.</p>
+        <p className="text-brand-text-secondary mb-6">Tu cita está agendada. Hemos enviado los detalles a tu correo.</p>
         
         <div className="text-left bg-black/20 p-4 rounded-lg">
           <div className="space-y-2">
@@ -41,7 +41,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             <p><strong className="text-brand-text-secondary w-16 inline-block">Hora:</strong> {timeSlot?.time}</p>
           </div>
           <div className="mt-4 pt-3 border-t border-gray-700/50 text-center">
-            {/* The sync process now happens automatically on the backend. */}
+             <p className="text-sm text-green-300">✓ Se ha enviado una invitación a tu calendario de Google.</p>
           </div>
         </div>
 
