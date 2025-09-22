@@ -87,8 +87,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
         </div>
 
         {/* Management Panel */}
-        <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-8">
-          <div className="flex justify-between items-center mb-6 border-b border-gray-700/50 pb-4">
+        <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-700/50 pb-4 gap-4">
             <div>
               <h2 
                 className="text-3xl font-bold text-brand-primary"
@@ -102,7 +102,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
             </div>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors"
+              className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors w-full sm:w-auto"
             >
               + Añadir Barbería
             </button>
