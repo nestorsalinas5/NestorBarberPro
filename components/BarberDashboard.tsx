@@ -41,7 +41,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
   }, [bookings, selectedDate]);
 
   const TabButton: React.FC<{tabId: Tab; children: React.ReactNode}> = ({ tabId, children }) => (
-    <button onClick={() => setActiveTab(tabId)} className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors ${activeTab === tabId ? 'bg-brand-surface text-brand-primary border-b-2 border-brand-primary' : 'text-brand-text-secondary hover:text-brand-text'}`}>
+    <button onClick={() => setActiveTab(tabId)} className={`px-3 sm:px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors whitespace-nowrap ${activeTab === tabId ? 'bg-brand-surface text-brand-primary border-b-2 border-brand-primary' : 'text-brand-text-secondary hover:text-brand-text'}`}>
       {children}
     </button>
   );
@@ -51,24 +51,24 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
     <div className="animate-fade-in">
       <LicenseWarningBanner licenseExpiresAt={barberShop.license_expires_at} />
 
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h2 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Panel del Barbero</h2>
-          <p className="text-brand-text-secondary">Gestiona tu negocio y la configuración de <span className="font-semibold text-brand-text">{barberShop.name}</span></p>
-        </div>
+      <div className="mb-2">
+        <h2 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Panel del Barbero</h2>
+        <p className="text-brand-text-secondary">Gestiona tu negocio y la configuración de <span className="font-semibold text-brand-text">{barberShop.name}</span></p>
       </div>
       
-      <div className="border-b border-gray-700/50 mb-6">
-        <TabButton tabId="agenda">Agenda</TabButton>
-        <TabButton tabId="clients">Clientes</TabButton>
-        <TabButton tabId="reports">Reportes</TabButton>
-        <TabButton tabId="settings">Configuración</TabButton>
+      <div className="border-b border-gray-700/50 mb-6 w-full overflow-x-auto">
+        <div className="flex">
+            <TabButton tabId="agenda">Agenda</TabButton>
+            <TabButton tabId="clients">Clientes</TabButton>
+            <TabButton tabId="reports">Reportes</TabButton>
+            <TabButton tabId="settings">Configuración</TabButton>
+        </div>
       </div>
 
       {activeTab === 'agenda' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-brand-surface rounded-lg shadow-2xl p-6"><AgendaCalendarView bookings={bookings} selectedDate={selectedDate} onDateSelect={setSelectedDate} currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} /></div>
-          <div className="lg:col-span-1"><div className="sticky top-8 bg-brand-surface rounded-lg shadow-2xl p-6">
+          <div className="lg:col-span-2 bg-brand-surface rounded-lg shadow-2xl p-4 sm:p-6"><AgendaCalendarView bookings={bookings} selectedDate={selectedDate} onDateSelect={setSelectedDate} currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} /></div>
+          <div className="lg:col-span-1"><div className="lg:sticky top-8 bg-brand-surface rounded-lg shadow-2xl p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-brand-text capitalize">{selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</h3>
