@@ -142,11 +142,25 @@ function App() {
     }
 
     if (functionData.success && functionData.booking) {
-      setBookings(prev => [...prev, functionData.booking as Booking]);
+      const newBooking = functionData.booking as Booking;
+      setBookings(prev => [...prev, newBooking]);
+      
       // Refetch clients as a new one might have been created/updated
       if (profile?.role === 'Barber' && profile.barber_shop_id) {
           fetchBarberData(profile.barber_shop_id);
       }
+      
+      // Asynchronously trigger Google Sync without waiting for it to finish
+      try {
+        supabase.functions.invoke('sync-to-google', { body: { newBooking } })
+          .then(({ error }) => {
+            if (error) console.error('Google Sync Error:', error);
+            else console.log('Google Sync triggered successfully for booking:', newBooking.id);
+          });
+      } catch (e) {
+        console.error('Failed to invoke Google Sync function:', e);
+      }
+
       return true;
     }
     
