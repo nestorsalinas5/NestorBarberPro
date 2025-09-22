@@ -3,8 +3,7 @@ import type { Service, TimeSlot, Booking, ScheduleConfig } from '../types';
 
 // Helper function to convert "HH:mm" time string to minutes from midnight for easier calculation.
 const timeToMinutes = (time: string): number => {
-  // Handles both "15:00" and "Cupo X" formats. Weekend slots are not time-based so they won't be converted.
-  if (!time.includes(':')) return -1; 
+  if (!time || !time.includes(':')) return -1; 
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
@@ -28,75 +27,80 @@ export const useBookingLogic = (
 
 
   const generateTimeSlots = useCallback((date: Date): TimeSlot[] => {
-    if (!date || totalDurationOfSelectedServices === 0) return [];
+    if (!date || totalDurationOfSelectedServices === 0 || !schedule) return [];
 
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
 
-    // Weekend logic is slot-based, not time-based, so it remains simpler.
+    // Weekend logic (Friday/Saturday) is slot-based
     if (day === 5 || day === 6) {
-      const todaysBooked = bookings
-        .filter(b => b.date === dateString && b.status !== 'Cancelada')
-        .map(b => b.time);
+      const todaysBookedCount = bookings.filter(b => b.date === dateString && b.status !== 'Cancelada').length;
       
       const slots: TimeSlot[] = [];
-      for (let i = 0; i < schedule.weekend_slots_count; i++) {
-        const slotLabel = `Cupo ${i + 1}`;
-        slots.push({
-          time: slotLabel,
-          isAvailable: !todaysBooked.includes(slotLabel),
-        });
+      const totalSlots = schedule.weekendConfig?.slotsCount || 0;
+      
+      if (todaysBookedCount < totalSlots) {
+         slots.push({
+           time: `Cupo disponible`,
+           isAvailable: true,
+         });
+      } else {
+         slots.push({
+           time: 'Cupos agotados',
+           isAvailable: false
+         })
       }
-      return slots;
+      // For simplicity, we just show one button for weekends now.
+      // Logic could be expanded to show N available slots.
+      // In this version, we handle booking one by one. The logic will prevent overbooking.
+      // A more accurate slot representation for weekends:
+      const availableSlots = totalSlots - todaysBookedCount;
+      if (availableSlots > 0) {
+        return [{ time: `Reservar uno de los ${availableSlots} cupos`, isAvailable: true }];
+      }
+      return [{ time: "Todos los cupos ocupados", isAvailable: false }];
     }
 
     // Weekday logic: duration-aware conflict detection
-    // 1. Get all booked time ranges for the day in minutes.
     const bookedRanges = bookings
       .filter(b => b.date === dateString && b.status !== 'Cancelada' && b.time.includes(':'))
       .map(b => {
         const startTime = timeToMinutes(b.time);
-        // Handle both old (single service) and new (array of services) data structures
         const bookingDuration = Array.isArray(b.service)
           ? b.service.reduce((acc, s) => acc + s.duration, 0)
-          : (b.service as any).duration || 30; // Fallback for old data
+          : (b.service as any).duration || 30;
         const endTime = startTime + bookingDuration;
         return { start: startTime, end: endTime };
       });
 
-    // 2. Generate potential slots and check for overlaps.
     const potentialSlots: TimeSlot[] = [];
-    const { startHour, endHour, slotInterval } = schedule.weekdayConfig;
+    if (!schedule.weekdayConfig) return [];
+    
+    const { startTime, endTime, slotInterval } = schedule.weekdayConfig;
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += slotInterval) {
-        const slotStartMinutes = hour * 60 + minute;
-        const slotEndMinutes = slotStartMinutes + totalDurationOfSelectedServices;
+    if (startMinutes === -1 || endMinutes === -1) return [];
 
-        // Don't create slots that would end after the barber shop closes.
-        if (slotEndMinutes > endHour * 60) {
-          continue;
+    for (let currentMinutes = startMinutes; currentMinutes < endMinutes; currentMinutes += slotInterval) {
+      const slotStartMinutes = currentMinutes;
+      const slotEndMinutes = slotStartMinutes + totalDurationOfSelectedServices;
+
+      if (slotEndMinutes > endMinutes) continue;
+
+      let isAvailable = true;
+      for (const bookedRange of bookedRanges) {
+        if (slotStartMinutes < bookedRange.end && slotEndMinutes > bookedRange.start) {
+          isAvailable = false;
+          break;
         }
-
-        // 3. Check for overlaps with existing bookings.
-        let isAvailable = true;
-        for (const bookedRange of bookedRanges) {
-          // An overlap occurs if (StartA < EndB) and (EndA > StartB).
-          if (slotStartMinutes < bookedRange.end && slotEndMinutes > bookedRange.start) {
-            isAvailable = false;
-            break; // An overlap was found, so this slot is unavailable.
-          }
-        }
-
-        const d = new Date(date);
-        d.setHours(hour, minute, 0, 0);
-        const timeString = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        potentialSlots.push({
-          time: timeString,
-          isAvailable,
-        });
       }
+
+      const hours = Math.floor(currentMinutes / 60);
+      const minutes = currentMinutes % 60;
+      const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+      potentialSlots.push({ time: timeString, isAvailable });
     }
 
     return potentialSlots;
@@ -139,10 +143,21 @@ export const useBookingLogic = (
 
     setIsSubmitting(true);
     
+    let bookingTime = selectedTimeSlot.time;
+    // For weekends, we need to assign a real time or a sequential slot number if we are to prevent duplicates
+    // Let's refine the weekend logic.
+    const day = selectedDate.getDay();
+    if (day === 5 || day === 6) {
+        const dateString = selectedDate.toISOString().split('T')[0];
+        const todaysBookedCount = bookings.filter(b => b.date === dateString && b.status !== 'Cancelada').length;
+        bookingTime = `Cupo #${todaysBookedCount + 1}`;
+    }
+
+
     const bookingData = {
       service: selectedServices,
       date: selectedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD string for DB
-      time: selectedTimeSlot.time,
+      time: bookingTime,
       customer: customerDetails,
     };
     
