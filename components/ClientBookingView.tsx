@@ -68,26 +68,28 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
       <div className="mb-4">
         <button 
             onClick={onReturnToShopSelection}
-            className="text-sm text-brand-primary hover:text-brand-secondary transition-colors"
+            className="text-sm text-brand-primary hover:text-brand-secondary transition-colors font-semibold"
         >
             &larr; Volver a la lista de barberías
         </button>
       </div>
 
       <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          <div className="md:col-span-2 p-6 md:p-8 border-r border-gray-700/50">
-            <h2 className="text-2xl font-bold text-brand-primary mb-6">{getStepTitle()}</h2>
-            {getStepComponent()}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3">
           
-          <aside className="md:col-span-1 p-6 md:p-8 bg-black/20">
+           <aside className="lg:col-span-1 p-6 bg-black/20 lg:border-r lg:border-gray-700/50">
             <BookingSummary 
               services={selectedServices}
               date={selectedDate}
               timeSlot={selectedTimeSlot}
             />
           </aside>
+          
+          <div className="lg:col-span-2 p-6">
+            <h2 className="text-2xl font-bold text-brand-primary mb-6">{getStepTitle()}</h2>
+            {getStepComponent()}
+          </div>
+          
         </div>
       </div>
       
