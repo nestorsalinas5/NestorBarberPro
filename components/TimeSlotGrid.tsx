@@ -20,9 +20,9 @@ export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectT
       {isWeekend && (
         <div className="mb-4 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg text-center">
           <p className="font-semibold text-brand-primary">
-            Sistema de Reserva por Cupos
+            Sistema de Citas por Cupos
           </p>
-          <p className="text-sm text-brand-text-secondary">Los viernes y sábados se reserva un cupo, no una hora específica.</p>
+          <p className="text-sm text-brand-text-secondary">Los fines de semana operan con un número limitado de citas en horarios consecutivos.</p>
         </div>
       )}
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
