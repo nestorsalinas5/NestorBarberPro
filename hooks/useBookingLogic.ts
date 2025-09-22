@@ -51,24 +51,39 @@ export const useBookingLogic = (
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
 
-    // Weekend logic (Friday/Saturday) is slot-based with individual slots
+    // Weekend logic (Friday/Saturday) is slot-based with calculated times
     if (day === 5 || day === 6) {
-      const totalSlots = normalizedSchedule.weekendConfig.slotsCount;
-      if (totalSlots === 0) return [];
+      const { slotsCount, startTime } = normalizedSchedule.weekendConfig;
+      if (slotsCount === 0 || totalDurationOfSelectedServices === 0) return [];
+
+      const startMinutes = timeToMinutes(startTime);
+      if (startMinutes === -1) return [];
 
       const bookedSlotNumbers = new Set(
         bookings
           .filter(b => b.date === dateString && b.status !== 'Cancelada' && b.time.startsWith('Cupo #'))
-          .map(b => parseInt(b.time.replace('Cupo #', ''), 10))
+          .map(b => {
+            const match = b.time.match(/Cupo #(\d+)/);
+            return match ? parseInt(match[1], 10) : NaN;
+          })
           .filter(num => !isNaN(num))
       );
-
+      
       const slots: TimeSlot[] = [];
-      for (let i = 1; i <= totalSlots; i++) {
+      let currentMinutes = startMinutes;
+
+      for (let i = 1; i <= slotsCount; i++) {
+        const hours = Math.floor(currentMinutes / 60);
+        const minutes = currentMinutes % 60;
+        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        
         slots.push({
-          time: `Cupo #${i}`,
+          time: `Cupo #${i} - ${timeString}`,
           isAvailable: !bookedSlotNumbers.has(i),
         });
+
+        // Calculate the start time for the next slot
+        currentMinutes += totalDurationOfSelectedServices;
       }
       return slots;
     }
