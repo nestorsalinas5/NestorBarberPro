@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense } from './types';
+import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense, ScheduleConfig } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
 import { ClientBookingView } from './components/ClientBookingView';
 import { LoginPage } from './components/LoginPage';
@@ -171,7 +171,19 @@ function App() {
     const newUserId = functionData.userId;
     if (!newUserId) { alert('Error inesperado: No se recibió el ID del nuevo usuario.'); return; }
 
-    const { data: newShop, error: shopError } = await supabase.from('barber_shops').insert({ name: details.name, status: 'Activa', license_type: 'Trial', license_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), services: [], schedule: { weekdayConfig: { startHour: 9, endHour: 18, slotInterval: 30 }, weekend_slots_count: 10 } }).select('id').single();
+    const newShopData = {
+      name: details.name,
+      status: 'Activa' as const,
+      license_type: 'Trial' as const,
+      license_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      services: [],
+      schedule: { 
+        weekdayConfig: { startTime: "09:30", endTime: "19:30", slotInterval: 30 }, 
+        weekendConfig: { slotsCount: 20, startTime: "08:20" } 
+      }
+    };
+
+    const { data: newShop, error: shopError } = await supabase.from('barber_shops').insert(newShopData).select('id').single();
     if (shopError || !newShop) { alert(`Error al crear la barbería: ${shopError?.message}. Asigna la barbería manualmente.`); return; }
 
     const { error: profileError } = await supabase.from('profiles').update({ role: 'Barber', barber_shop_id: newShop.id }).eq('id', newUserId);
@@ -211,6 +223,17 @@ function App() {
       setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
       setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, ...updatedShop } : s)));
       alert('Servicios actualizados con éxito.');
+    }
+  };
+  
+  const handleUpdateBarberShopSchedule = async (shopId: string, schedule: ScheduleConfig) => {
+    const { data, error } = await supabase.from('barber_shops').update({ schedule }).eq('id', shopId).select().single();
+    if (error) { alert(`Error al guardar el horario: ${error.message}.`); }
+    else if (data) {
+      const updatedShop = data as BarberShop;
+      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, schedule: updatedShop.schedule } : s)));
+      alert('Horario actualizado con éxito.');
     }
   };
   
@@ -270,7 +293,7 @@ function App() {
   const renderContent = () => {
     if (session && profile) {
       if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} onDeleteBarberShop={handleDeleteBarberShopAndUser} />;
-      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} />;
+      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUpdateSchedule={handleUpdateBarberShopSchedule} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} />;
       return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
     }
     
