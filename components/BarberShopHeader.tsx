@@ -13,29 +13,29 @@ interface BarberShopHeaderProps {
 export const BarberShopHeader: React.FC<BarberShopHeaderProps> = ({ user, onNavigateToLogin, onLogout, barberShopName, slogan, logoUrl }) => {
   return (
     <header>
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div className="flex items-center gap-4">
           {logoUrl && (
-            <img src={logoUrl} alt={`${barberShopName} logo`} className="h-16 w-16 rounded-md object-cover" />
+            <img src={logoUrl} alt={`${barberShopName} logo`} className="h-14 w-14 sm:h-16 sm:w-16 rounded-md object-cover" />
           )}
           <div className="text-left">
             <h1 
-              className="text-4xl sm:text-5xl font-bold text-brand-primary" 
+              className="text-3xl sm:text-5xl font-bold text-brand-primary" 
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {barberShopName || 'NestorBarberPro'}
             </h1>
-            {slogan && <p className="mt-1 text-lg text-brand-text-secondary">{slogan}</p>}
+            {slogan && <p className="mt-1 text-base sm:text-lg text-brand-text-secondary">{slogan}</p>}
           </div>
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           {user ? (
-            <div className="text-right">
-              <p className="text-brand-text-secondary">Conectado como</p>
+            <div className="text-left sm:text-right bg-brand-surface sm:bg-transparent p-3 sm:p-0 rounded-lg">
+              <p className="text-sm text-brand-text-secondary">Conectado como</p>
               <p className="font-bold text-brand-text break-all">{user.email}</p>
               <button 
                 onClick={onLogout}
-                className="mt-2 text-sm text-brand-primary hover:text-brand-secondary transition-colors"
+                className="mt-2 text-sm font-semibold text-brand-primary hover:text-brand-secondary transition-colors"
               >
                 Cerrar Sesión
               </button>
@@ -43,7 +43,7 @@ export const BarberShopHeader: React.FC<BarberShopHeaderProps> = ({ user, onNavi
           ) : (
             <button 
               onClick={onNavigateToLogin}
-              className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors"
+              className="bg-brand-primary text-brand-bg font-bold py-2 px-5 rounded-lg hover:bg-brand-secondary transition-colors w-full sm:w-auto"
             >
               Portal de Barberos
             </button>
