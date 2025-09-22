@@ -32,33 +32,26 @@ export const useBookingLogic = (
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
 
-    // Weekend logic (Friday/Saturday) is slot-based
+    // Weekend logic (Friday/Saturday) is slot-based with individual slots
     if (day === 5 || day === 6) {
-      const todaysBookedCount = bookings.filter(b => b.date === dateString && b.status !== 'Cancelada').length;
-      
-      const slots: TimeSlot[] = [];
       const totalSlots = schedule.weekendConfig?.slotsCount || 0;
-      
-      if (todaysBookedCount < totalSlots) {
-         slots.push({
-           time: `Cupo disponible`,
-           isAvailable: true,
-         });
-      } else {
-         slots.push({
-           time: 'Cupos agotados',
-           isAvailable: false
-         })
+      if (totalSlots === 0) return [];
+
+      const bookedSlotNumbers = new Set(
+        bookings
+          .filter(b => b.date === dateString && b.status !== 'Cancelada' && b.time.startsWith('Cupo #'))
+          .map(b => parseInt(b.time.replace('Cupo #', ''), 10))
+          .filter(num => !isNaN(num))
+      );
+
+      const slots: TimeSlot[] = [];
+      for (let i = 1; i <= totalSlots; i++) {
+        slots.push({
+          time: `Cupo #${i}`,
+          isAvailable: !bookedSlotNumbers.has(i),
+        });
       }
-      // For simplicity, we just show one button for weekends now.
-      // Logic could be expanded to show N available slots.
-      // In this version, we handle booking one by one. The logic will prevent overbooking.
-      // A more accurate slot representation for weekends:
-      const availableSlots = totalSlots - todaysBookedCount;
-      if (availableSlots > 0) {
-        return [{ time: `Reservar uno de los ${availableSlots} cupos`, isAvailable: true }];
-      }
-      return [{ time: "Todos los cupos ocupados", isAvailable: false }];
+      return slots;
     }
 
     // Weekday logic: duration-aware conflict detection
@@ -143,21 +136,10 @@ export const useBookingLogic = (
 
     setIsSubmitting(true);
     
-    let bookingTime = selectedTimeSlot.time;
-    // For weekends, we need to assign a real time or a sequential slot number if we are to prevent duplicates
-    // Let's refine the weekend logic.
-    const day = selectedDate.getDay();
-    if (day === 5 || day === 6) {
-        const dateString = selectedDate.toISOString().split('T')[0];
-        const todaysBookedCount = bookings.filter(b => b.date === dateString && b.status !== 'Cancelada').length;
-        bookingTime = `Cupo #${todaysBookedCount + 1}`;
-    }
-
-
     const bookingData = {
       service: selectedServices,
       date: selectedDate.toISOString().split('T')[0], // Format as YYYY-MM-DD string for DB
-      time: bookingTime,
+      time: selectedTimeSlot.time, // The selected time is now always correct, for both weekdays and weekends
       customer: customerDetails,
     };
     
