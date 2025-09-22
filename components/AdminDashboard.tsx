@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import type { BarberShop, BarberShopWithUser, Booking } from '../types';
+import type { BarberShop, BarberShopWithUser, Booking, Profile } from '../types';
 import { BarberShopList } from './BarberShopList';
 import { AddBarberShopModal } from './AddBarberShopModal';
 import { LicenseModal } from './LicenseModal';
 import { StatCard } from './StatCard';
 import { PoweredByFooter } from './PoweredByFooter';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
-// FIX: Import supabase client to be able to query the database.
 import { supabase } from '../services/supabaseClient';
 
 interface AdminDashboardProps {
@@ -45,41 +44,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
     }
   };
 
-  const openDeleteModal = (shop: BarberShopWithUser) => {
-    if (shop.user_email) { // Technically, user_id would be better, but this works for now. We need the user ID.
-      // We don't have user_id here directly, so we need to fetch it or change the RPC.
-      // For now, let's assume the user's ID is what we need to get from the email.
-      // This is a simplification. In a real app, you'd want the user ID in the RPC response.
-      // As a workaround, we'll need to fetch the user by email before deleting. Let's adjust logic.
-      // The user id IS the profile ID. So let's get it from profiles table.
-      // However, the function needs the auth.users.id, which might be different. Let's find it.
-      // This logic should be in App.tsx
-      setShopToDelete({ shopId: shop.id, userId: shop.id, shopName: shop.name }); // Placeholder for userId
-      setIsDeleteModalOpen(true);
-    } else {
-        alert("Esta barbería no tiene un usuario asignado para eliminar.");
+  const openDeleteModal = async (shop: BarberShopWithUser) => {
+    // A robust way to get the user ID is to query the profiles table for the user associated with this shop.
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('barber_shop_id', shop.id)
+      .single();
+    
+    if (error || !profile) {
+      alert("Error: No se pudo encontrar el usuario asociado a esta barbería para eliminarlo. Puede que ya no exista.");
+      return;
     }
+    
+    setShopToDelete({ shopId: shop.id, userId: profile.id, shopName: shop.name });
+    setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (shopToDelete) {
-        // Here we need the real user ID. The current data `BarberShopWithUser` does not provide it.
-        // Let's modify the RPC `get_barbershops_with_users` to also return the user ID.
-        // For now, I will assume we can get it somehow. Let's make a temp fix.
-        // A proper fix would be:
-        // 1. Alter function `get_barbershops_with_users` to return `u.id as user_id`.
-        // 2. Update `BarberShopWithUser` type to include `user_id`.
-        // 3. Use `shop.user_id` here.
-        
-        // TEMPORARY LOGIC: We assume the profile ID is the auth ID. This is true in our setup.
-        // The profile ID is not in the data either. The user email is.
-        // Let's find the user by email to get their ID. This is inefficient but will work for now.
-        const { data, error } = await supabase.from('profiles').select('id').eq('barber_shop_id', shopToDelete.shopId).single();
-        if (error || !data) {
-            alert("No se pudo encontrar el usuario asociado para eliminar.");
-        } else {
-             await onDeleteBarberShop(shopToDelete.shopId, data.id);
-        }
+      await onDeleteBarberShop(shopToDelete.shopId, shopToDelete.userId);
     }
     setIsDeleteModalOpen(false);
     setShopToDelete(null);
