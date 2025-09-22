@@ -1,5 +1,5 @@
 // El nombre del caché. Es buena práctica incluir una versión para facilitar las actualizaciones.
-const CACHE_NAME = 'nestorbarberpro-v4';
+const CACHE_NAME = 'nestorbarberpro-v5';
 
 // App Shell: Archivos básicos y estáticos necesarios para que la aplicación se ejecute.
 const APP_SHELL_URLS = [
@@ -7,8 +7,8 @@ const APP_SHELL_URLS = [
   '/index.html',
   '/index.css',
   '/manifest.json',
-  // El favicon SVG que se define en el HTML
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121212'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='60' font-family='Playfair Display, serif' fill='%23D4AF37'%3EN%3C/text%3E%3C/svg%3E",
+  // Se eliminó el favicon SVG data:URI porque no puede ser cacheado directamente.
+  // El navegador lo renderizará desde el archivo index.html que sí está en caché.
 ];
 
 /**
