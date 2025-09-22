@@ -56,31 +56,31 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
             {licenseStatus.text}
         </p>
       </div>
-      <div className="self-end sm:self-center flex items-center flex-wrap gap-2">
+      <div className="w-full sm:w-auto self-end sm:self-center flex items-center flex-wrap gap-2">
         <button
             onClick={() => onManageLicense(barberShop)}
-            className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors"
         >
             Licencia
         </button>
         {isSuspended ? (
           <button
             onClick={() => onUpdateStatus(barberShop.id, 'Activa')}
-            className="px-3 py-1 text-xs font-semibold rounded-md bg-green-500/20 text-green-300 hover:bg-green-500/40 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-green-500/20 text-green-300 hover:bg-green-500/40 transition-colors"
           >
             Reactivar
           </button>
         ) : (
           <button
             onClick={() => onUpdateStatus(barberShop.id, 'Suspendida')}
-            className="px-3 py-1 text-xs font-semibold rounded-md bg-red-500/20 text-red-300 hover:bg-red-500/40 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-red-500/20 text-red-300 hover:bg-red-500/40 transition-colors"
           >
             Suspender
           </button>
         )}
         <button
             onClick={() => onDelete(barberShop)}
-            className="px-3 py-1 text-xs font-semibold rounded-md bg-gray-600/20 text-gray-400 hover:bg-red-500/40 hover:text-red-300 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-600/20 text-gray-400 hover:bg-red-500/40 hover:text-red-300 transition-colors"
         >
             Eliminar
         </button>
