@@ -6,25 +6,24 @@ interface TimeSlotGridProps {
   selectedTimeSlot: TimeSlot | null;
   onSelectTimeSlot: (timeSlot: TimeSlot) => void;
   selectedDate: Date | null;
-  weekend_slots_count: number;
+  weekendSlotsCount: number;
 }
 
-export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectTimeSlot, selectedTimeSlot, selectedDate, weekend_slots_count }) => {
+export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectTimeSlot, selectedTimeSlot, selectedDate, weekendSlotsCount }) => {
   if (!timeSlots || timeSlots.length === 0) {
     return <div className="text-center text-brand-text-secondary py-8">No hay horarios disponibles para este día.</div>;
   }
 
   const isWeekend = selectedDate && (selectedDate.getDay() === 5 || selectedDate.getDay() === 6);
-  const availableWeekendSlots = timeSlots.filter(s => s.isAvailable).length;
-
+  
   return (
     <div className="animate-fade-in">
       {isWeekend && (
         <div className="mb-4 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg text-center">
           <p className="font-semibold text-brand-primary">
-            {availableWeekendSlots} / {weekend_slots_count} Cupos Disponibles
+            Sistema de Reserva por Cupos
           </p>
-          <p className="text-sm text-brand-text-secondary">Los viernes y sábados usamos un sistema de cupos limitados.</p>
+          <p className="text-sm text-brand-text-secondary">Los viernes y sábados se reserva un cupo, no una hora específica.</p>
         </div>
       )}
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
