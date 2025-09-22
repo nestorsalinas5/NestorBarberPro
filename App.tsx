@@ -22,6 +22,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'booking' | 'login'>('booking');
   const [selectedShopId, setSelectedShopId] = useState<string | null>(null);
+  const [googleSyncStatus, setGoogleSyncStatus] = useState<'pending' | 'success' | 'error' | null>(null);
 
   const fetchClientData = async () => {
     const { data: shopsData, error: shopsError } = await supabase
@@ -150,16 +151,18 @@ function App() {
           fetchBarberData(profile.barber_shop_id);
       }
       
-      // Asynchronously trigger Google Sync without waiting for it to finish
-      try {
-        supabase.functions.invoke('sync-to-google', { body: { newBooking } })
-          .then(({ error }) => {
-            if (error) console.error('Google Sync Error:', error);
-            else console.log('Google Sync triggered successfully for booking:', newBooking.id);
-          });
-      } catch (e) {
-        console.error('Failed to invoke Google Sync function:', e);
-      }
+      // Asynchronously trigger Google Sync and update UI status
+      setGoogleSyncStatus('pending');
+      supabase.functions.invoke('sync-to-google', { body: { newBooking } })
+        .then(({ error }) => {
+          if (error) {
+            console.error('Google Sync Error:', error);
+            setGoogleSyncStatus('error');
+          } else {
+            console.log('Google Sync triggered successfully for booking:', newBooking.id);
+            setGoogleSyncStatus('success');
+          }
+        });
 
       return true;
     }
@@ -312,7 +315,7 @@ function App() {
     }
     
     if (view === 'login') return <LoginPage />;
-    if (clientSelectedShop) return <ClientBookingView barberShop={clientSelectedShop} bookings={bookings.filter(b => b.barber_shop_id === clientSelectedShop.id)} onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: clientSelectedShop.id})} onReturnToShopSelection={handleReturnToShopSelection} />;
+    if (clientSelectedShop) return <ClientBookingView barberShop={clientSelectedShop} bookings={bookings.filter(b => b.barber_shop_id === clientSelectedShop.id)} onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: clientSelectedShop.id})} onReturnToShopSelection={handleReturnToShopSelection} googleSyncStatus={googleSyncStatus} onResetGoogleSyncStatus={() => setGoogleSyncStatus(null)} />;
     return <ShopSelectionView barberShops={barberShops} onSelectShop={handleSelectShop} />;
   };
   
