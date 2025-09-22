@@ -6,10 +6,9 @@ interface TimeSlotGridProps {
   selectedTimeSlot: TimeSlot | null;
   onSelectTimeSlot: (timeSlot: TimeSlot) => void;
   selectedDate: Date | null;
-  weekendSlotsCount: number;
 }
 
-export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectTimeSlot, selectedTimeSlot, selectedDate, weekendSlotsCount }) => {
+export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectTimeSlot, selectedTimeSlot, selectedDate }) => {
   if (!timeSlots || timeSlots.length === 0) {
     return <div className="text-center text-brand-text-secondary py-8">No hay horarios disponibles para este día.</div>;
   }
