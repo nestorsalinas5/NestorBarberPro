@@ -22,7 +22,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ services, date, 
   const totalDuration = services.reduce((total, s) => total + s.duration, 0);
 
   return (
-    <div className="sticky top-8">
+    <div className="lg:sticky top-8">
       <h3 className="text-xl font-bold text-brand-primary mb-4 border-b-2 border-brand-primary/30 pb-2">
         Tu Cita
       </h3>
@@ -55,7 +55,7 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ services, date, 
           </span>
         </div>
       </div>
-       <div className="mt-6 p-4 bg-brand-bg rounded-lg text-center">
+       <div className="mt-6 p-4 bg-brand-bg rounded-lg text-center hidden lg:block">
         <p className="text-sm text-brand-text-secondary">Por favor, revisa tus selecciones. Puedes volver y cambiarlas en cualquier momento antes de confirmar.</p>
       </div>
     </div>
