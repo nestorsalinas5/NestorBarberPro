@@ -45,7 +45,7 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
       case 2:
         return <DatePicker selectedDate={selectedDate} onDateSelect={handleDateSelect} />;
       case 3:
-        return <TimeSlotGrid timeSlots={timeSlots} onSelectTimeSlot={handleTimeSlotSelect} selectedTimeSlot={selectedTimeSlot} selectedDate={selectedDate} weekendSlotsCount={barberShop.schedule.weekendConfig.slotsCount} />;
+        return <TimeSlotGrid timeSlots={timeSlots} onSelectTimeSlot={handleTimeSlotSelect} selectedTimeSlot={selectedTimeSlot} selectedDate={selectedDate} />;
       case 4:
         return <BookingForm onSubmit={handleBookingSubmit} isSubmitting={isSubmitting} />;
       default:
