@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { Booking, BarberShop, Service, Client, Expense } from '../types';
+import type { Booking, BarberShop, Service, Client, Expense, ScheduleConfig } from '../types';
 import { BookingList } from './BookingList';
 import { BarberSettingsView } from './BarberSettingsView';
 import { AgendaCalendarView } from './AgendaCalendarView';
@@ -16,6 +16,7 @@ interface BarberDashboardProps {
   expenses: Expense[];
   onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   onUpdateServices: (shopId: string, services: Service[]) => Promise<void>;
+  onUpdateSchedule: (shopId: string, schedule: ScheduleConfig) => Promise<void>;
   onUploadLogo: (file: File, shopId: string) => Promise<void>;
   onAddExpense: (expenseData: Omit<Expense, 'id' | 'created_at' | 'barber_shop_id'>) => Promise<void>;
   onDeleteExpense: (expenseId: string) => Promise<void>;
@@ -25,7 +26,7 @@ interface BarberDashboardProps {
 type Tab = 'agenda' | 'clients' | 'reports' | 'settings';
 
 export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
-  const { barberShop, bookings, clients, expenses, onUpdateBookingStatus, onUpdateServices, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient } = props;
+  const { barberShop, bookings, clients, expenses, onUpdateBookingStatus, onUpdateServices, onUpdateSchedule, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient } = props;
   
   const [activeTab, setActiveTab] = useState<Tab>('agenda');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -85,7 +86,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
 
       {activeTab === 'clients' && <ClientManagementView clients={clients} onUpdateClient={onUpdateClient} />}
       {activeTab === 'reports' && <ReportingView barberShop={barberShop} bookings={bookings} expenses={expenses} onAddExpense={onAddExpense} onDeleteExpense={onDeleteExpense} />}
-      {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUploadLogo={onUploadLogo} />}
+      {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUpdateSchedule={onUpdateSchedule} onUploadLogo={onUploadLogo} />}
       
       <PoweredByFooter />
     </div>
