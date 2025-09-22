@@ -13,10 +13,12 @@ interface ClientBookingViewProps {
   barberShop: BarberShop;
   bookings: Booking[];
   onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => Promise<boolean>;
-  onReturnToShopSelection: () => void; // New prop for navigation
+  onReturnToShopSelection: () => void;
+  googleSyncStatus: 'pending' | 'success' | 'error' | null;
+  onResetGoogleSyncStatus: () => void;
 }
 
-export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection }) => {
+export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection, googleSyncStatus, onResetGoogleSyncStatus }) => {
   const {
     step,
     selectedServices,
@@ -32,6 +34,11 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
     handleBookingSubmit,
     handleReset,
   } = useBookingLogic(bookings, barberShop.schedule, (bookingData) => onBookingConfirmed({ ...bookingData, barber_shop_id: barberShop.id }));
+
+  const handleConfirmationClose = () => {
+    handleReset();
+    onResetGoogleSyncStatus();
+  };
 
   const getStepComponent = () => {
     switch (step) {
@@ -97,10 +104,11 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
 
       <ConfirmationModal
         isOpen={isConfirmed}
-        onClose={handleReset}
+        onClose={handleConfirmationClose}
         services={selectedServices}
         date={selectedDate}
         timeSlot={selectedTimeSlot}
+        googleSyncStatus={googleSyncStatus}
       />
     </>
   );
