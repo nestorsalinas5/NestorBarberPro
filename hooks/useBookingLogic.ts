@@ -21,20 +21,39 @@ export const useBookingLogic = (
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  // Normalize schedule data to prevent crashes with old data formats.
+  const normalizedSchedule = useMemo(() => {
+    const defaults: ScheduleConfig = {
+      weekdayConfig: { startTime: "09:30", endTime: "19:30", slotInterval: 30 },
+      weekendConfig: { slotsCount: 20, startTime: "08:20" }
+    };
+    return {
+      weekdayConfig: {
+        ...defaults.weekdayConfig,
+        ...(schedule?.weekdayConfig || {}),
+      },
+      weekendConfig: {
+        ...defaults.weekendConfig,
+        ...(schedule?.weekendConfig || {}),
+      },
+    };
+  }, [schedule]);
+
+
   const totalDurationOfSelectedServices = useMemo(() => {
     return selectedServices.reduce((total, s) => total + s.duration, 0);
   }, [selectedServices]);
 
 
   const generateTimeSlots = useCallback((date: Date): TimeSlot[] => {
-    if (!date || totalDurationOfSelectedServices === 0 || !schedule) return [];
+    if (!date || totalDurationOfSelectedServices === 0) return [];
 
     const day = date.getDay();
     const dateString = date.toISOString().split('T')[0];
 
     // Weekend logic (Friday/Saturday) is slot-based with individual slots
     if (day === 5 || day === 6) {
-      const totalSlots = schedule.weekendConfig?.slotsCount || 0;
+      const totalSlots = normalizedSchedule.weekendConfig.slotsCount;
       if (totalSlots === 0) return [];
 
       const bookedSlotNumbers = new Set(
@@ -67,9 +86,8 @@ export const useBookingLogic = (
       });
 
     const potentialSlots: TimeSlot[] = [];
-    if (!schedule.weekdayConfig) return [];
     
-    const { startTime, endTime, slotInterval } = schedule.weekdayConfig;
+    const { startTime, endTime, slotInterval } = normalizedSchedule.weekdayConfig;
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
 
@@ -97,7 +115,7 @@ export const useBookingLogic = (
     }
 
     return potentialSlots;
-  }, [bookings, schedule, totalDurationOfSelectedServices]);
+  }, [bookings, normalizedSchedule, totalDurationOfSelectedServices]);
   
   const timeSlots = useMemo(() => {
     return selectedDate ? generateTimeSlots(selectedDate) : [];
