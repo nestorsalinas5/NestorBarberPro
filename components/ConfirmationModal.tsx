@@ -54,9 +54,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
         );
       case 'error':
         return (
-          <div className="flex items-center justify-center gap-2 text-sm text-red-400">
-            <XCircleIcon className="w-5 h-5" />
-            <span>Hubo un error al sincronizar con Google Calendar.</span>
+          <div className="text-center p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <div className="flex items-center justify-center gap-2 text-sm text-red-400 font-semibold">
+              <XCircleIcon className="w-5 h-5 flex-shrink-0" />
+              <span>Error al sincronizar con Google Calendar</span>
+            </div>
+            <p className="mt-1 text-xs text-red-400/80">
+              Tu cita está confirmada. Si lo deseas, puedes añadirla manualmente a tu calendario.
+            </p>
           </div>
         );
       default:
@@ -82,14 +87,15 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
             <p><strong className="text-brand-text-secondary w-16 inline-block">Fecha:</strong> {capitalizedDate}</p>
             <p><strong className="text-brand-text-secondary w-16 inline-block">Hora:</strong> {timeSlot?.time}</p>
           </div>
-          <div className="mt-4 pt-3 border-t border-gray-700/50 text-center h-6">
-             {renderSyncStatus()}
-          </div>
+        </div>
+
+        <div className="my-6 min-h-[56px] flex items-center justify-center">
+          {renderSyncStatus()}
         </div>
 
         <button
           onClick={onClose}
-          className="mt-8 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-brand-bg bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors"
+          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-brand-bg bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors"
         >
           Agendar otra Cita
         </button>
