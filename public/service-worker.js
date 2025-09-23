@@ -1,5 +1,5 @@
 // El nombre del caché. Es buena práctica incluir una versión para facilitar las actualizaciones.
-const CACHE_NAME = 'nestorbarberpro-v8';
+const CACHE_NAME = 'nestorbarberpro-v9';
 
 // App Shell: Archivos básicos y estáticos necesarios para que la aplicación se ejecute.
 const APP_SHELL_URLS = [
