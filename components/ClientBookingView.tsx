@@ -14,11 +14,9 @@ interface ClientBookingViewProps {
   bookings: Booking[];
   onBookingConfirmed: (booking: Omit<Booking, 'id' | 'status' | 'created_at'>) => Promise<boolean>;
   onReturnToShopSelection: () => void;
-  googleSyncStatus: 'pending' | 'success' | 'error' | null;
-  onResetGoogleSyncStatus: () => void;
 }
 
-export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection, googleSyncStatus, onResetGoogleSyncStatus }) => {
+export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection }) => {
   const {
     step,
     selectedServices,
@@ -34,11 +32,6 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
     handleBookingSubmit,
     handleReset,
   } = useBookingLogic(bookings, barberShop.schedule, (bookingData) => onBookingConfirmed({ ...bookingData, barber_shop_id: barberShop.id }));
-
-  const handleConfirmationClose = () => {
-    handleReset();
-    onResetGoogleSyncStatus();
-  };
 
   const getStepComponent = () => {
     switch (step) {
@@ -104,11 +97,10 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
 
       <ConfirmationModal
         isOpen={isConfirmed}
-        onClose={handleConfirmationClose}
+        onClose={handleReset}
         services={selectedServices}
         date={selectedDate}
         timeSlot={selectedTimeSlot}
-        googleSyncStatus={googleSyncStatus}
       />
     </>
   );
