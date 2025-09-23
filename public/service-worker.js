@@ -1,14 +1,11 @@
 // El nombre del caché. Es buena práctica incluir una versión para facilitar las actualizaciones.
-const CACHE_NAME = 'nestorbarberpro-v5';
+const CACHE_NAME = 'nestorbarberpro-v7';
 
 // App Shell: Archivos básicos y estáticos necesarios para que la aplicación se ejecute.
 const APP_SHELL_URLS = [
   '/',
-  '/index.html',
   '/index.css',
   '/manifest.json',
-  // Se eliminó el favicon SVG data:URI porque no puede ser cacheado directamente.
-  // El navegador lo renderizará desde el archivo index.html que sí está en caché.
 ];
 
 /**
@@ -22,6 +19,9 @@ self.addEventListener('install', event => {
       .then(cache => {
         console.log('[Service Worker] Guardando en caché el App Shell');
         return cache.addAll(APP_SHELL_URLS);
+      })
+      .catch(error => {
+        console.error('[Service Worker] Falló la instalación del caché:', error);
       })
   );
 });
@@ -73,8 +73,9 @@ self.addEventListener('fetch', event => {
           // Opcional pero recomendado: guardar la nueva respuesta en caché para la próxima vez.
           // Solo si la respuesta es válida.
           if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+             const responseToCache = networkResponse.clone();
              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
+                cache.put(event.request, responseToCache);
              });
           }
           return networkResponse;
