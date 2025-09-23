@@ -7,7 +7,6 @@ interface ConfirmationModalProps {
   services: Service[];
   date: Date | null;
   timeSlot: TimeSlot | null;
-  googleSyncStatus: 'pending' | 'success' | 'error' | null;
 }
 
 // Icons
@@ -17,58 +16,63 @@ const CheckCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-const ClockIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-  </svg>
-);
-
-const XCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-  </svg>
+const CalendarPlusIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0h18M12 12.75h.008v.008H12v-.008Zm-3.002 0h.008v.008h-.008v-.008Zm6.004 0h.008v.008h-.008v-.008Zm-3.002 3h.008v.008h-.008v-.008Zm3.002 0h.008v.008h-.008v-.008Zm-6.004 0h.008v.008h-.008v-.008Z" />
+    </svg>
 );
 
 
-export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, services, date, timeSlot, googleSyncStatus }) => {
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, services, date, timeSlot }) => {
   if (!isOpen) return null;
 
   const formattedDate = date?.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' });
   const capitalizedDate = formattedDate ? formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1) : null;
+  
+  const handleDownloadICS = () => {
+    if (!date || !timeSlot) return;
 
-  const renderSyncStatus = () => {
-    switch (googleSyncStatus) {
-      case 'pending':
-        return (
-          <div className="flex items-center justify-center gap-2 text-sm text-yellow-400">
-            <ClockIcon className="w-5 h-5 animate-spin" />
-            <span>Sincronizando con Google Calendar...</span>
-          </div>
-        );
-      case 'success':
-        return (
-          <div className="flex items-center justify-center gap-2 text-sm text-green-400">
-            <CheckCircleIcon className="w-5 h-5" />
-            <span>Se ha enviado una invitación a tu calendario.</span>
-          </div>
-        );
-      case 'error':
-        return (
-          <div className="text-center p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <div className="flex items-center justify-center gap-2 text-sm text-red-400 font-semibold">
-              <XCircleIcon className="w-5 h-5 flex-shrink-0" />
-              <span>Error al sincronizar con Google Calendar</span>
-            </div>
-            <p className="mt-1 text-xs text-red-400/80">
-              Tu cita está confirmada. Si lo deseas, puedes añadirla manualmente a tu calendario.
-            </p>
-          </div>
-        );
-      default:
-        return null;
-    }
+    const totalDuration = services.reduce((total, s) => total + s.duration, 0);
+    const serviceNames = services.map(s => s.name).join(', ');
+    
+    // Parse time, handling both "HH:mm" and "Cupo #X - HH:mm" formats
+    const timeString = timeSlot.time.includes('-') ? timeSlot.time.split('-')[1].trim() : timeSlot.time;
+    const [hours, minutes] = timeString.split(':').map(Number);
+
+    const startDate = new Date(date);
+    startDate.setHours(hours, minutes, 0, 0);
+    
+    const endDate = new Date(startDate.getTime() + totalDuration * 60000);
+    
+    // Format dates for ICS file (YYYYMMDDTHHMMSSZ)
+    const formatICSDate = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//NestorBarberPro//Booking//ES',
+      'BEGIN:VEVENT',
+      `UID:${Date.now()}@nestorbarber.pro`,
+      `DTSTAMP:${formatICSDate(new Date())}`,
+      `DTSTART:${formatICSDate(startDate)}`,
+      `DTEND:${formatICSDate(endDate)}`,
+      `SUMMARY:Cita de Barbería: ${serviceNames}`,
+      `DESCRIPTION:Servicios: ${serviceNames}. ¡Gracias por tu reserva!`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'cita-barberia.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
-
+  
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-brand-surface rounded-lg shadow-2xl p-8 max-w-md w-full text-center transform transition-all scale-100">
@@ -76,7 +80,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
         <h2 className="text-2xl font-bold text-brand-primary mb-2">¡Reserva Confirmada!</h2>
         <p className="text-brand-text-secondary mb-6">Tu cita está agendada. Hemos enviado los detalles a tu correo.</p>
         
-        <div className="text-left bg-black/20 p-4 rounded-lg">
+        <div className="text-left bg-black/20 p-4 rounded-lg mb-6">
           <div className="space-y-2">
             <div>
               <strong className="text-brand-text-secondary w-16 inline-block">Servicios:</strong> 
@@ -89,16 +93,22 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
           </div>
         </div>
 
-        <div className="my-6 min-h-[56px] flex items-center justify-center">
-          {renderSyncStatus()}
+        <div className="space-y-4">
+            <button
+              onClick={handleDownloadICS}
+              className="w-full flex items-center justify-center gap-2 text-lg font-semibold bg-brand-primary/20 text-brand-primary hover:bg-brand-primary/40 transition-colors py-3 px-4 rounded-lg"
+            >
+              <CalendarPlusIcon className="w-6 h-6" />
+              Añadir a mi Calendario
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full py-3 px-4 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-brand-text hover:bg-brand-bg transition-colors"
+            >
+              Agendar otra Cita
+            </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-brand-bg bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors"
-        >
-          Agendar otra Cita
-        </button>
       </div>
     </div>
   );
