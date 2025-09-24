@@ -6,7 +6,7 @@ import type { BarberShopWithUser } from '../types';
 interface ThemeEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (theme: { primary_color: string; secondary_color: string }) => Promise<void>;
+  onSave: (theme: { color_primario: string; color_secundario: string }) => Promise<void>;
   barberShop: BarberShopWithUser;
 }
 
@@ -17,8 +17,8 @@ export const ThemeEditModal: React.FC<ThemeEditModalProps> = ({ isOpen, onClose,
 
   useEffect(() => {
     if (barberShop) {
-      setPrimaryColor(barberShop.primary_color || '#D4AF37');
-      setSecondaryColor(barberShop.secondary_color || '#F0C44D');
+      setPrimaryColor(barberShop.color_primario || '#D4AF37');
+      setSecondaryColor(barberShop.color_secundario || '#F0C44D');
     }
   }, [barberShop, isOpen]);
 
@@ -28,7 +28,7 @@ export const ThemeEditModal: React.FC<ThemeEditModalProps> = ({ isOpen, onClose,
     e.preventDefault();
     setIsSaving(true);
     try {
-      await onSave({ primary_color: primaryColor, secondary_color: secondaryColor });
+      await onSave({ color_primario: primaryColor, color_secundario: secondaryColor });
       onClose();
     } catch (error) {
       console.error("Failed to save theme:", error);
