@@ -310,13 +310,6 @@ function App() {
   };
 
   // Product Handlers
-  const handleUpdateProducts = async (updatedProducts: Product[]) => {
-    if (!profile?.barber_shop_id) return;
-    // This is a simplified approach. In a real app, you'd make specific add/update/delete calls.
-    // For now, we'll just update the products that changed. This is a placeholder for a more robust solution.
-    // Let's implement full CRUD.
-  };
-
   const handleAddProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'>) => {
     if (!profile?.barber_shop_id) return;
     const { data, error } = await supabase.from('products').insert({ ...productData, barber_shop_id: profile.barber_shop_id }).select().single();
