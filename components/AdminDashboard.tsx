@@ -6,6 +6,7 @@ import { LicenseModal } from './LicenseModal';
 import { StatCard } from './StatCard';
 import { PoweredByFooter } from './PoweredByFooter.tsx';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { ThemeEditModal } from './ThemeEditModal';
 import { supabase } from '../services/supabaseClient';
 
 interface AdminDashboardProps {
@@ -15,12 +16,14 @@ interface AdminDashboardProps {
   onUpdateBarberShopStatus: (shopId: string, status: BarberShopWithUser['status']) => Promise<void>;
   onUpdateBarberShopLicense: (shopId: string, license: { type: BarberShop['license_type']; expiresAt: string | null }) => Promise<void>;
   onDeleteBarberShop: (shopId: string, userId: string) => Promise<void>;
+  onUpdateBarberShopTheme: (shopId: string, theme: { primary_color: string; secondary_color: string }) => Promise<void>;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, bookings, onAddBarberShopAndUser, onUpdateBarberShopStatus, onUpdateBarberShopLicense, onDeleteBarberShop }) => {
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, bookings, onAddBarberShopAndUser, onUpdateBarberShopStatus, onUpdateBarberShopLicense, onDeleteBarberShop, onUpdateBarberShopTheme }) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
-  const [selectedShopForLicense, setSelectedShopForLicense] = useState<BarberShopWithUser | null>(null);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [selectedShop, setSelectedShop] = useState<BarberShopWithUser | null>(null);
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [shopToDelete, setShopToDelete] = useState<{ shopId: string; userId: string; shopName: string } | null>(null);
@@ -32,15 +35,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
   }
 
   const openLicenseModal = (shop: BarberShopWithUser) => {
-    setSelectedShopForLicense(shop);
+    setSelectedShop(shop);
     setIsLicenseModalOpen(true);
   };
 
+  const openThemeModal = (shop: BarberShopWithUser) => {
+    setSelectedShop(shop);
+    setIsThemeModalOpen(true);
+  };
+
   const handleLicenseSubmit = async (license: { type: BarberShop['license_type']; expiresAt: string | null }) => {
-    if (selectedShopForLicense) {
-        await onUpdateBarberShopLicense(selectedShopForLicense.id, license);
+    if (selectedShop) {
+        await onUpdateBarberShopLicense(selectedShop.id, license);
         setIsLicenseModalOpen(false);
-        setSelectedShopForLicense(null);
+        setSelectedShop(null);
+    }
+  };
+  
+  const handleThemeSubmit = async (theme: { primary_color: string; secondary_color: string }) => {
+    if (selectedShop) {
+      await onUpdateBarberShopTheme(selectedShop.id, theme);
+      setIsThemeModalOpen(false);
+      setSelectedShop(null);
     }
   };
 
@@ -112,6 +128,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
             barberShops={barberShops} 
             onUpdateStatus={onUpdateBarberShopStatus} 
             onManageLicense={openLicenseModal}
+            onManageTheme={openThemeModal}
             onDelete={openDeleteModal}
           />
         </div>
@@ -125,13 +142,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
         onAdd={handleAddSubmit}
       />
 
-      {selectedShopForLicense && (
+      {selectedShop && (
         <LicenseModal
             isOpen={isLicenseModalOpen}
             onClose={() => setIsLicenseModalOpen(false)}
             onSave={handleLicenseSubmit}
-            barberShop={selectedShopForLicense}
+            barberShop={selectedShop}
         />
+      )}
+
+      {selectedShop && (
+          <ThemeEditModal
+              isOpen={isThemeModalOpen}
+              onClose={() => setIsThemeModalOpen(false)}
+              onSave={handleThemeSubmit}
+              barberShop={selectedShop}
+          />
       )}
 
       <DeleteConfirmationModal
