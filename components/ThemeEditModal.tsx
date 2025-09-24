@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import type { BarberShopWithUser } from '../types';
 
 interface ThemeEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (theme: { primary_color: string; secondary_color: string }) => Promise<void>;
+  // FIX: Updated theme prop type to be consistent with the database schema (color_primario, color_secundario).
+  onSave: (theme: { color_primario: string; color_secundario: string }) => Promise<void>;
   barberShop: BarberShopWithUser;
 }
 
@@ -15,8 +17,9 @@ export const ThemeEditModal: React.FC<ThemeEditModalProps> = ({ isOpen, onClose,
 
   useEffect(() => {
     if (barberShop) {
-      setPrimaryColor(barberShop.primary_color || '#D4AF37');
-      setSecondaryColor(barberShop.secondary_color || '#F0C44D');
+      // FIX: Use color_primario and color_secundario consistent with the updated BarberShop type.
+      setPrimaryColor(barberShop.color_primario || '#D4AF37');
+      setSecondaryColor(barberShop.color_secundario || '#F0C44D');
     }
   }, [barberShop, isOpen]);
 
@@ -25,7 +28,8 @@ export const ThemeEditModal: React.FC<ThemeEditModalProps> = ({ isOpen, onClose,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    await onSave({ primary_color: primaryColor, secondary_color: secondaryColor });
+    // FIX: Pass theme object with color_primario and color_secundario.
+    await onSave({ color_primario: primaryColor, color_secundario: secondaryColor });
     setIsSaving(false);
     onClose();
   };
