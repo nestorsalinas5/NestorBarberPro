@@ -250,7 +250,8 @@ function App() {
     const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
     if (error) {
         console.error('Error updating theme:', error);
-        alert('Error al actualizar el tema.');
+        const detailedMessage = `Error al actualizar el tema.\n\nDetalles del error: ${error.message}\n\nPor favor, comprueba que las columnas 'primary_color' y 'secondary_color' existen en tu tabla 'barber_shops' y que tu usuario tiene permisos (RLS) para actualizarlas.`;
+        alert(detailedMessage);
     } else if (data) {
         setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
         setBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } as BarberShop : s));
