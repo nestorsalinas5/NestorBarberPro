@@ -16,6 +16,25 @@ interface ClientBookingViewProps {
   onReturnToShopSelection: () => void;
 }
 
+const PromotionsBanner: React.FC<{ promotions: BarberShop['promotions'] }> = ({ promotions }) => {
+  if (!promotions || promotions.length === 0) return null;
+
+  return (
+    <div className="mb-6 p-4 bg-brand-primary/10 border border-brand-primary/30 rounded-lg animate-fade-in">
+      <h3 className="font-bold text-brand-primary mb-2">¡Promociones Especiales!</h3>
+      <ul className="space-y-2">
+        {promotions.map(promo => (
+          <li key={promo.id}>
+            <p className="font-semibold text-brand-text">{promo.title}</p>
+            <p className="text-sm text-brand-text-secondary">{promo.description}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+
 export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection }) => {
   const {
     step,
@@ -73,6 +92,8 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
             &larr; Volver a la lista de barberías
         </button>
       </div>
+
+      <PromotionsBanner promotions={barberShop.promotions} />
 
       <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3">
