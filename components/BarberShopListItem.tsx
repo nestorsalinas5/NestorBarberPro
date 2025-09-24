@@ -46,8 +46,7 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
       <div className="flex-grow">
         <div className="flex items-center gap-4">
             <p className="font-bold text-lg text-brand-text">{barberShop.name}</p>
-            {/* FIX: Use color_primario consistent with the updated BarberShop type. */}
-            {barberShop.color_primario && <span className="h-4 w-4 rounded-full" style={{ backgroundColor: barberShop.color_primario }}></span>}
+            {barberShop.primary_color && <span className="h-4 w-4 rounded-full" style={{ backgroundColor: barberShop.primary_color }}></span>}
         </div>
         <div className="flex items-center gap-2 mt-1">
           <span className={`h-2 w-2 rounded-full ${indicator}`}></span>
