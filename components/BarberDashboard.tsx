@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import type { Booking, BarberShop, Service, Client, Expense, ScheduleConfig } from '../types';
+import type { Booking, BarberShop, Service, Client, Expense, ScheduleConfig, Product, Promotion } from '../types';
 import { BookingList } from './BookingList';
 import { BarberSettingsView } from './BarberSettingsView';
 import { AgendaCalendarView } from './AgendaCalendarView';
 import { ClientManagementView } from './ClientManagementView';
 import { ReportingView } from './ReportingView';
+import { InventoryManagementView } from './InventoryManagementView';
 import { BookingDetailModal } from './BookingDetailModal';
 import { PoweredByFooter } from './PoweredByFooter';
 import { LicenseWarningBanner } from './LicenseWarningBanner';
@@ -14,6 +15,7 @@ interface BarberDashboardProps {
   bookings: Booking[];
   clients: Client[];
   expenses: Expense[];
+  products: Product[];
   onUpdateBookingStatus: (bookingId: string, status: Booking['status']) => Promise<void>;
   onUpdateServices: (shopId: string, services: Service[]) => Promise<void>;
   onUpdateSchedule: (shopId: string, schedule: ScheduleConfig) => Promise<void>;
@@ -21,12 +23,21 @@ interface BarberDashboardProps {
   onAddExpense: (expenseData: Omit<Expense, 'id' | 'created_at' | 'barber_shop_id'>) => Promise<void>;
   onDeleteExpense: (expenseId: string) => Promise<void>;
   onUpdateClient: (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => Promise<void>;
+  onAddProduct: (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'>) => Promise<void>;
+  onUpdateProduct: (productData: Product) => Promise<void>;
+  onDeleteProduct: (productId: string) => Promise<void>;
+  onUpdatePromotions: (shopId: string, promotions: Promotion[]) => Promise<void>;
+  onUpdateTheme: (shopId: string, theme: { primary_color: string; secondary_color: string }) => Promise<void>;
 }
 
-type Tab = 'agenda' | 'clients' | 'reports' | 'settings';
+type Tab = 'agenda' | 'clients' | 'reports' | 'inventory' | 'settings';
 
 export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
-  const { barberShop, bookings, clients, expenses, onUpdateBookingStatus, onUpdateServices, onUpdateSchedule, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient } = props;
+  const { 
+      barberShop, bookings, clients, expenses, products, onUpdateBookingStatus, onUpdateServices, 
+      onUpdateSchedule, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient,
+      onAddProduct, onUpdateProduct, onDeleteProduct, onUpdatePromotions, onUpdateTheme
+  } = props;
   
   const [activeTab, setActiveTab] = useState<Tab>('agenda');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -60,6 +71,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
         <div className="flex">
             <TabButton tabId="agenda">Agenda</TabButton>
             <TabButton tabId="clients">Clientes</TabButton>
+            <TabButton tabId="inventory">Inventario</TabButton>
             <TabButton tabId="reports">Reportes</TabButton>
             <TabButton tabId="settings">Configuración</TabButton>
         </div>
@@ -85,8 +97,9 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
       )}
 
       {activeTab === 'clients' && <ClientManagementView clients={clients} onUpdateClient={onUpdateClient} />}
+      {activeTab === 'inventory' && <InventoryManagementView products={products} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} />}
       {activeTab === 'reports' && <ReportingView barberShop={barberShop} bookings={bookings} expenses={expenses} onAddExpense={onAddExpense} onDeleteExpense={onDeleteExpense} />}
-      {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUpdateSchedule={onUpdateSchedule} onUploadLogo={onUploadLogo} />}
+      {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUpdateSchedule={onUpdateSchedule} onUploadLogo={onUploadLogo} onUpdatePromotions={onUpdatePromotions} onUpdateTheme={onUpdateTheme} />}
       
       <PoweredByFooter />
     </div>
