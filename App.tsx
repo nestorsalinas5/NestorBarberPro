@@ -139,9 +139,9 @@ function App() {
   useEffect(() => {
     const activeShop = clientSelectedShop || loggedInBarberShop;
     const root = document.documentElement;
-    if (activeShop?.primary_color) {
-      root.style.setProperty('--color-primary', activeShop.primary_color);
-      root.style.setProperty('--color-secondary', activeShop.secondary_color || activeShop.primary_color);
+    if (activeShop?.color_primario) {
+      root.style.setProperty('--color-primary', activeShop.color_primario);
+      root.style.setProperty('--color-secondary', activeShop.color_secundario || activeShop.color_primario);
     } else {
       // Reset to default if no shop is active or if the shop has no custom color
       root.style.setProperty('--color-primary', '#D4AF37');
@@ -246,11 +246,11 @@ function App() {
     }
   };
 
-  const handleUpdateBarberShopTheme = async (shopId: string, theme: { primary_color: string; secondary_color: string }) => {
+  const handleUpdateBarberShopTheme = async (shopId: string, theme: { color_primario: string; color_secundario: string }) => {
     const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
     if (error) {
         console.error('Error updating theme:', error);
-        const detailedMessage = `Error al actualizar el tema.\n\nDetalles del error: ${error.message}\n\nPor favor, comprueba que las columnas 'primary_color' y 'secondary_color' existen en tu tabla 'barber_shops' y que tu usuario tiene permisos (RLS) para actualizarlas.`;
+        const detailedMessage = `Error al actualizar el tema.\n\nDetalles del error: ${error.message}\n\nPor favor, comprueba que las columnas 'color_primario' y 'color_secundario' existen en tu tabla 'barber_shops' y que tu usuario tiene permisos (RLS) para actualizarlas.`;
         alert(detailedMessage);
     } else if (data) {
         setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
