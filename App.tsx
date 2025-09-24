@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense, ScheduleConfig } from './types';
+import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense, ScheduleConfig, Product, Promotion } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
 import { ClientBookingView } from './components/ClientBookingView';
 import { LoginPage } from './components/LoginPage';
@@ -17,6 +17,7 @@ function App() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [barberShops, setBarberShops] = useState<BarberShop[]>([]);
   const [adminBarberShops, setAdminBarberShops] = useState<BarberShopWithUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,6 +64,11 @@ function App() {
     const { data: expensesData, error: expensesError } = await supabase.from('expenses').select('*').eq('barber_shop_id', shopId);
     if (expensesError) console.error('Error fetching expenses:', expensesError);
     else setExpenses(expensesData || []);
+
+     // Fetch products for the shop
+    const { data: productsData, error: productsError } = await supabase.from('products').select('*').eq('barber_shop_id', shopId);
+    if (productsError) console.error('Error fetching products:', productsError);
+    else setProducts(productsData || []);
 
     return shopData;
   }, []);
@@ -124,6 +130,24 @@ function App() {
     return () => subscription.unsubscribe();
   }, [fetchBarberData]);
   
+  const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
+  const clientSelectedShop = barberShops.find(s => s.id === selectedShopId);
+
+  // THEME MANAGEMENT
+  useEffect(() => {
+    const activeShop = clientSelectedShop || loggedInBarberShop;
+    const root = document.documentElement;
+    if (activeShop?.primary_color) {
+      root.style.setProperty('--color-primary', activeShop.primary_color);
+      root.style.setProperty('--color-secondary', activeShop.secondary_color || activeShop.primary_color);
+    } else {
+      // Reset to default if no shop is active or if the shop has no custom color
+      root.style.setProperty('--color-primary', '#D4AF37');
+      root.style.setProperty('--color-secondary', '#F0C44D');
+    }
+  }, [clientSelectedShop, loggedInBarberShop]);
+
+
   const handleSelectShop = (shopId: string) => setSelectedShopId(shopId);
   const handleReturnToShopSelection = () => setSelectedShopId(null);
   const handleLogout = async () => { await authService.signOut(); setView('booking'); };
@@ -285,9 +309,57 @@ function App() {
     }
   };
 
+  // Product Handlers
+  const handleUpdateProducts = async (updatedProducts: Product[]) => {
+    if (!profile?.barber_shop_id) return;
+    // This is a simplified approach. In a real app, you'd make specific add/update/delete calls.
+    // For now, we'll just update the products that changed. This is a placeholder for a more robust solution.
+    // Let's implement full CRUD.
+  };
 
-  const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
-  const clientSelectedShop = barberShops.find(s => s.id === selectedShopId);
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'>) => {
+    if (!profile?.barber_shop_id) return;
+    const { data, error } = await supabase.from('products').insert({ ...productData, barber_shop_id: profile.barber_shop_id }).select().single();
+    if (error) { alert(`Error al añadir producto: ${error.message}`); }
+    else if(data) { setProducts(prev => [...prev, data]); }
+  };
+
+  const handleUpdateProduct = async (productData: Product) => {
+    const { data, error } = await supabase.from('products').update(productData).eq('id', productData.id).select().single();
+     if (error) { alert(`Error al actualizar producto: ${error.message}`); }
+    else if(data) { setProducts(prev => prev.map(p => p.id === data.id ? data : p)); }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+     const { error } = await supabase.from('products').delete().eq('id', productId);
+    if (error) { alert(`Error al eliminar producto: ${error.message}`); }
+    else { setProducts(prev => prev.filter(p => p.id !== productId)); }
+  };
+
+  // Promotion Handlers
+  const handleUpdateBarberShopPromotions = async (shopId: string, updatedPromotions: Promotion[]) => {
+    const { data, error } = await supabase.from('barber_shops').update({ promotions: updatedPromotions }).eq('id', shopId).select().single();
+    if (error) { alert(`Error al guardar las promociones: ${error.message}.`); }
+    else if (data) {
+      const updatedShop = data as BarberShop;
+      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, promotions: updatedShop.promotions } : s)));
+      alert('Promociones actualizadas con éxito.');
+    }
+  };
+
+  // Theme Handlers
+  const handleUpdateBarberShopTheme = async (shopId: string, theme: { primary_color: string; secondary_color: string }) => {
+    const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
+     if (error) { alert(`Error al guardar el tema: ${error.message}.`); }
+    else if (data) {
+      const updatedShop = data as BarberShop;
+      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
+      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, primary_color: updatedShop.primary_color, secondary_color: updatedShop.secondary_color } : s)));
+      alert('Tema actualizado con éxito.');
+    }
+  };
+
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen"><h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Cargando NestorBarberPro...</h1></div>;
@@ -295,8 +367,8 @@ function App() {
 
   const renderContent = () => {
     if (session && profile) {
-      if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} onDeleteBarberShop={handleDeleteBarberShopAndUser} />;
-      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUpdateSchedule={handleUpdateBarberShopSchedule} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} />;
+      if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} onDeleteBarberShop={handleDeleteBarberShopAndUser} onUpdateBarberShopTheme={handleUpdateBarberShopTheme} />;
+      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} products={products} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUpdateSchedule={handleUpdateBarberShopSchedule} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onUpdatePromotions={handleUpdateBarberShopPromotions} onUpdateTheme={handleUpdateBarberShopTheme} />;
       return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
     }
     
