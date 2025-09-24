@@ -14,8 +14,8 @@ export default {
         'brand-surface': '#1E1E1E', // Lighter dark gray for cards/modals
         'brand-text': '#E0E0E0', // Main text color (off-white)
         'brand-text-secondary': '#A0A0A0', // Lighter text for secondary info
-        'brand-primary': '#D4AF37', // Gold accent color
-        'brand-secondary': '#F0C44D', // Lighter gold for hover effects
+        'brand-primary': 'var(--color-primary, #D4AF37)', // Gold accent color (now a CSS variable)
+        'brand-secondary': 'var(--color-secondary, #F0C44D)', // Lighter gold for hover effects (now a CSS variable)
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
