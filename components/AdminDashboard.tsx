@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { BarberShop, BarberShopWithUser, Booking } from '../types';
 import { BarberShopList } from './BarberShopList';
@@ -16,7 +17,8 @@ interface AdminDashboardProps {
   onUpdateBarberShopStatus: (shopId: string, status: BarberShopWithUser['status']) => Promise<void>;
   onUpdateBarberShopLicense: (shopId: string, license: { type: BarberShop['license_type']; expiresAt: string | null }) => Promise<void>;
   onDeleteBarberShop: (shopId: string, userId: string) => Promise<void>;
-  onUpdateBarberShopTheme: (shopId: string, theme: { primary_color: string; secondary_color: string }) => Promise<void>;
+  // FIX: Updated theme prop type to be consistent with the database schema (color_primario, color_secundario).
+  onUpdateBarberShopTheme: (shopId: string, theme: { color_primario: string; color_secundario: string }) => Promise<void>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, bookings, onAddBarberShopAndUser, onUpdateBarberShopStatus, onUpdateBarberShopLicense, onDeleteBarberShop, onUpdateBarberShopTheme }) => {
@@ -52,7 +54,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ barberShops, boo
     }
   };
   
-  const handleThemeSubmit = async (theme: { primary_color: string; secondary_color: string }) => {
+  const handleThemeSubmit = async (theme: { color_primario: string; color_secundario: string }) => {
     if (selectedShop) {
       await onUpdateBarberShopTheme(selectedShop.id, theme);
       setIsThemeModalOpen(false);
