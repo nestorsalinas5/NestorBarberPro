@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import type { BarberShop, Service, ScheduleConfig, Promotion } from '../types';
 import { ServiceEditModal } from './ServiceEditModal';
@@ -9,7 +10,8 @@ interface BarberSettingsViewProps {
   onUpdateSchedule: (shopId: string, schedule: ScheduleConfig) => Promise<void>;
   onUploadLogo: (file: File, shopId: string) => Promise<void>;
   onUpdatePromotions: (shopId: string, promotions: Promotion[]) => Promise<void>;
-  onUpdateTheme: (shopId: string, theme: { primary_color: string; secondary_color: string }) => Promise<void>;
+  // FIX: Updated theme prop type to be consistent with the database schema (color_primario, color_secundario).
+  onUpdateTheme: (shopId: string, theme: { color_primario: string; color_secundario: string }) => Promise<void>;
 }
 
 // Helper function to ensure schedule data is always in the correct, modern format.
@@ -47,15 +49,17 @@ export const BarberSettingsView: React.FC<BarberSettingsViewProps> = ({ barberSh
   const [schedule, setSchedule] = useState<ScheduleConfig>(() => normalizeSchedule(barberShop.schedule));
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   
-  const [primaryColor, setPrimaryColor] = useState(barberShop.primary_color || '#D4AF37');
-  const [secondaryColor, setSecondaryColor] = useState(barberShop.secondary_color || '#F0C44D');
+  // FIX: Use color_primario and color_secundario consistent with the updated BarberShop type.
+  const [primaryColor, setPrimaryColor] = useState(barberShop.color_primario || '#D4AF37');
+  const [secondaryColor, setSecondaryColor] = useState(barberShop.color_secundario || '#F0C44D');
   const [isSavingTheme, setIsSavingTheme] = useState(false);
 
 
   useEffect(() => {
     setSchedule(normalizeSchedule(barberShop.schedule));
-    setPrimaryColor(barberShop.primary_color || '#D4AF37');
-    setSecondaryColor(barberShop.secondary_color || '#F0C44D');
+    // FIX: Use color_primario and color_secundario consistent with the updated BarberShop type.
+    setPrimaryColor(barberShop.color_primario || '#D4AF37');
+    setSecondaryColor(barberShop.color_secundario || '#F0C44D');
   }, [barberShop]);
 
   const handleScheduleChange = (type: 'weekday' | 'weekend', field: string, value: string | number) => {
@@ -76,7 +80,8 @@ export const BarberSettingsView: React.FC<BarberSettingsViewProps> = ({ barberSh
   
   const handleThemeSave = async () => {
     setIsSavingTheme(true);
-    await onUpdateTheme(barberShop.id, { primary_color: primaryColor, secondary_color: secondaryColor });
+    // FIX: Pass theme object with color_primario and color_secundario.
+    await onUpdateTheme(barberShop.id, { color_primario: primaryColor, color_secundario: secondaryColor });
     setIsSavingTheme(false);
   };
 
