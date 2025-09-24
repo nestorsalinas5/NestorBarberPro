@@ -1,3 +1,4 @@
+
 import type { User as AuthUser } from '@supabase/supabase-js';
 
 export type { AuthUser };
@@ -70,8 +71,9 @@ export interface BarberShop {
   license_expires_at: string | null;
   logo_url?: string | null;
   promotions?: Promotion[] | null;
-  primary_color?: string | null;
-  secondary_color?: string | null;
+  // FIX: Renamed theme properties to match database schema (color_primario, color_secundario)
+  color_primario?: string | null;
+  color_secundario?: string | null;
 }
 
 // Type for the admin view, combining BarberShop with user info from an RPC call
