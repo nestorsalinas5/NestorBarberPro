@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import type { Booking, BarberShop, Service, Client, Expense, ScheduleConfig, Product, Promotion } from '../types';
 import { BookingList } from './BookingList';
@@ -27,7 +28,8 @@ interface BarberDashboardProps {
   onUpdateProduct: (productData: Product) => Promise<void>;
   onDeleteProduct: (productId: string) => Promise<void>;
   onUpdatePromotions: (shopId: string, promotions: Promotion[]) => Promise<void>;
-  onUpdateTheme: (shopId: string, theme: { primary_color: string; secondary_color: string }) => Promise<void>;
+  // FIX: Updated theme prop type to be consistent with the database schema (color_primario, color_secundario).
+  onUpdateTheme: (shopId: string, theme: { color_primario: string; color_secundario: string }) => Promise<void>;
 }
 
 type Tab = 'agenda' | 'clients' | 'reports' | 'inventory' | 'settings';
