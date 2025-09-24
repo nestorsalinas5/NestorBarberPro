@@ -49,6 +49,14 @@ export interface ScheduleConfig {
   };
 }
 
+// NEW: Promotion for marketing
+export interface Promotion {
+  id: number;
+  title: string;
+  description: string;
+}
+
+
 // BarberShop table matches public.barber_shops
 export interface BarberShop {
   id: string;
@@ -61,6 +69,9 @@ export interface BarberShop {
   license_type: 'Trial' | 'Mensual' | 'Anual' | null;
   license_expires_at: string | null;
   logo_url?: string | null;
+  promotions?: Promotion[] | null;
+  primary_color?: string | null;
+  secondary_color?: string | null;
 }
 
 // Type for the admin view, combining BarberShop with user info from an RPC call
@@ -88,5 +99,16 @@ export interface Expense {
   amount: number;
   category?: string | null;
   date: string;
+  created_at: string;
+}
+
+// NEW: Product table for inventory
+export interface Product {
+  id: string;
+  barber_shop_id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  stock_quantity: number;
   created_at: string;
 }
