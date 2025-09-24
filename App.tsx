@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense, ScheduleConfig, Product, Promotion } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
@@ -66,7 +67,7 @@ function App() {
     else setExpenses(expensesData || []);
 
      // Fetch products for the shop
-    const { data: productsData, error: productsError } = await supabase.from('products').select('*').eq('barber_shop_id', shopId);
+    const { data: productsData, error: productsError } = await supabase.from('productos').select('*').eq('barber_shop_id', shopId);
     if (productsError) console.error('Error fetching products:', productsError);
     else setProducts(productsData || []);
 
@@ -137,9 +138,9 @@ function App() {
   useEffect(() => {
     const activeShop = clientSelectedShop || loggedInBarberShop;
     const root = document.documentElement;
-    if (activeShop?.primary_color) {
-      root.style.setProperty('--color-primary', activeShop.primary_color);
-      root.style.setProperty('--color-secondary', activeShop.secondary_color || activeShop.primary_color);
+    if (activeShop?.color_primario) {
+      root.style.setProperty('--color-primary', activeShop.color_primario);
+      root.style.setProperty('--color-secondary', activeShop.color_secundario || activeShop.color_primario);
     } else {
       // Reset to default if no shop is active or if the shop has no custom color
       root.style.setProperty('--color-primary', '#D4AF37');
@@ -184,197 +185,236 @@ function App() {
 
   const handleUpdateBookingStatus = async (bookingId: string, status: Booking['status']) => {
     const { data, error } = await supabase.from('bookings').update({ status }).eq('id', bookingId).select().single();
-    if (error) console.error('Error updating booking status:', error);
-    else if (data) setBookings(prev => prev.map(b => (b.id === bookingId ? (data as Booking) : b)));
-  };
-
-  const handleAddBarberShopAndUser = async (details: { name: string; email: string; password: string }) => {
-    const { data: functionData, error: functionError } = await supabase.functions.invoke('create-barber-user', { body: { email: details.email, password: details.password } });
-    if (functionError || functionData.error) {
-      console.error('Error creating user:', functionError || functionData.error);
-      alert(`Error al crear el usuario: ${functionError?.message || functionData.error}`);
-      return;
-    }
-    const newUserId = functionData.userId;
-    if (!newUserId) { alert('Error inesperado: No se recibió el ID del nuevo usuario.'); return; }
-
-    const newShopData = {
-      name: details.name,
-      status: 'Activa' as const,
-      license_type: 'Trial' as const,
-      license_expires_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-      services: [],
-      schedule: { 
-        weekdayConfig: { startTime: "09:30", endTime: "19:30", slotInterval: 30 }, 
-        weekendConfig: { slotsCount: 20, startTime: "08:20" } 
+    if (error) {
+      console.error('Error updating booking status:', error);
+      alert('Error al actualizar la reserva.');
+    } else if (data) {
+      setBookings(prev => prev.map(b => b.id === bookingId ? data as Booking : b));
+      // After completing a booking, we should refetch clients to update their last_visit and total_bookings
+      if (profile?.role === 'Barber' && profile.barber_shop_id) {
+          fetchBarberData(profile.barber_shop_id);
       }
-    };
-
-    const { data: newShop, error: shopError } = await supabase.from('barber_shops').insert(newShopData).select('id').single();
-    if (shopError || !newShop) { alert(`Error al crear la barbería: ${shopError?.message}. Asigna la barbería manualmente.`); return; }
-
-    const { error: profileError } = await supabase.from('profiles').update({ role: 'Barber', barber_shop_id: newShop.id }).eq('id', newUserId);
-    if (profileError) { alert(`Error al asignar perfil: ${profileError.message}. Asigna el perfil manualmente.`); return; }
-    
-    alert('Barbería y usuario creados y asignados con éxito.');
-    await fetchAdminData();
+    }
   };
-
-  const handleDeleteBarberShopAndUser = async (shopId: string, userId: string) => {
-    const { data, error } = await supabase.functions.invoke('delete-barber-user', {
-      body: { shopId, userId },
+  
+  // --- ADMIN HANDLERS ---
+  const handleAddBarberShopAndUser = async (details: { name: string; email: string; password: string }) => {
+    // This assumes a Supabase function named 'create-barbershop-with-user' exists.
+    const { data, error } = await supabase.functions.invoke('create-barbershop-with-user', {
+        body: details,
     });
 
-    if (error || data.error) {
-      const err = error || data.error;
-      console.error('Error deleting barber shop and user:', err);
-      alert(`Error al eliminar: ${err.message || err}`);
-      return;
+    if (error || data?.error) {
+        console.error('Error creating barbershop and user:', error || data.error);
+        alert(`Error: ${error?.message || data.error}`);
+    } else {
+        alert('Barbería y usuario creados exitosamente.');
+        fetchAdminData();
     }
-    alert('Barbería y usuario eliminados con éxito.');
-    await fetchAdminData();
   };
-
-
+  
   const handleUpdateBarberShopStatus = async (shopId: string, status: BarberShop['status']) => {
     const { data, error } = await supabase.from('barber_shops').update({ status }).eq('id', shopId).select().single();
-    if (error) console.error('Error updating shop status:', error);
-    else if (data) setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, status: data.status } : s)));
+    if (error) {
+      console.error('Error updating shop status:', error);
+    } else if (data) {
+      setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
+    }
   };
 
-  const handleUpdateBarberShopServices = async (shopId: string, updatedServices: Service[]) => {
-    const { data, error } = await supabase.from('barber_shops').update({ services: updatedServices }).eq('id', shopId).select().single();
-    if (error) { alert(`Error al guardar los cambios: ${error.message}.`); }
-    else if (data) {
-      const updatedShop = data as BarberShop;
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
-      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, ...updatedShop } : s)));
-      alert('Servicios actualizados con éxito.');
-    }
-  };
-  
-  const handleUpdateBarberShopSchedule = async (shopId: string, schedule: ScheduleConfig) => {
-    const { data, error } = await supabase.from('barber_shops').update({ schedule }).eq('id', shopId).select().single();
-    if (error) { alert(`Error al guardar el horario: ${error.message}.`); }
-    else if (data) {
-      const updatedShop = data as BarberShop;
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
-      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, schedule: updatedShop.schedule } : s)));
-      alert('Horario actualizado con éxito.');
-    }
-  };
-  
   const handleUpdateBarberShopLicense = async (shopId: string, license: { type: BarberShop['license_type']; expiresAt: string | null }) => {
     const { data, error } = await supabase.from('barber_shops').update({ license_type: license.type, license_expires_at: license.expiresAt }).eq('id', shopId).select().single();
-    if (error) console.error('Error updating shop license:', error);
-    else if (data) setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, license_type: data.license_type, license_expires_at: data.license_expires_at } : s)));
+     if (error) {
+      console.error('Error updating license:', error);
+    } else if (data) {
+      setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
+    }
+  };
+  
+  const handleDeleteBarberShop = async (shopId: string, userId: string) => {
+    // This assumes a Supabase function named 'delete-barbershop-and-user' exists.
+    const { error } = await supabase.functions.invoke('delete-barbershop-and-user', {
+        body: { shopId, userId },
+    });
+    if (error) {
+        alert(`Error al eliminar la barbería: ${error.message}`);
+        console.error('Error deleting barbershop:', error);
+    } else {
+        alert('Barbería eliminada correctamente.');
+        fetchAdminData();
+    }
+  };
+
+  // FIX: Updated theme parameter names to be consistent with the database schema (color_primario, color_secundario).
+  const handleUpdateBarberShopTheme = async (shopId: string, theme: { color_primario: string; color_secundario: string }) => {
+    const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
+    if (error) {
+        console.error('Error updating theme:', error);
+        alert('Error al actualizar el tema.');
+    } else if (data) {
+        setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
+        setBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } as BarberShop : s));
+    }
+  };
+
+  // --- BARBER HANDLERS ---
+  const handleUpdateServices = async (shopId: string, services: Service[]) => {
+    const { data, error } = await supabase.from('barber_shops').update({ services }).eq('id', shopId).select().single();
+    if (error) console.error('Error updating services:', error);
+    else if (data) setBarberShops(prev => prev.map(s => s.id === shopId ? data as BarberShop : s));
+  };
+
+  const handleUpdateSchedule = async (shopId: string, schedule: ScheduleConfig) => {
+    const { data, error } = await supabase.from('barber_shops').update({ schedule }).eq('id', shopId).select().single();
+    if (error) console.error('Error updating schedule:', error);
+    else if (data) setBarberShops(prev => prev.map(s => s.id === shopId ? data as BarberShop : s));
   };
   
   const handleUploadLogo = async (file: File, shopId: string) => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${shopId}/${fileName}`;
-
+    const fileName = `${shopId}-${Math.random()}.${fileExt}`;
+    const filePath = `logos/${fileName}`;
+    
     const { error: uploadError } = await supabase.storage.from('logos').upload(filePath, file, { upsert: true });
-    if (uploadError) { alert(`Error al subir el logo: ${uploadError.message}`); return; }
 
-    const { data } = supabase.storage.from('logos').getPublicUrl(filePath);
-    const { data: updatedShop, error: updateError } = await supabase.from('barber_shops').update({ logo_url: data.publicUrl }).eq('id', shopId).select().single();
-    if (updateError) { alert(`Error al guardar URL del logo: ${updateError.message}`); }
-    else if (updatedShop) {
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
-      alert('Logo actualizado con éxito.');
+    if (uploadError) {
+        console.error('Error uploading logo:', uploadError);
+        alert('Error al subir el logo.');
+        return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(filePath);
+
+    const { data, error: dbError } = await supabase.from('barber_shops').update({ logo_url: publicUrl }).eq('id', shopId).select().single();
+    if (dbError) {
+        console.error('Error updating logo_url:', dbError);
+        alert('Error al guardar la URL del logo.');
+    } else if (data) {
+        setBarberShops(prev => prev.map(s => s.id === shopId ? data as BarberShop : s));
     }
   };
-
+  
   const handleAddExpense = async (expenseData: Omit<Expense, 'id' | 'created_at' | 'barber_shop_id'>) => {
     if (!profile?.barber_shop_id) return;
-    const { data, error } = await supabase.from('expenses').insert([{ ...expenseData, barber_shop_id: profile.barber_shop_id }]).select().single();
-    if (error) { alert(`Error al añadir gasto: ${error.message}`); }
-    else if (data) setExpenses(prev => [...prev, data]);
+    const { data, error } = await supabase.from('expenses').insert({ ...expenseData, barber_shop_id: profile.barber_shop_id }).select().single();
+    if (error) console.error('Error adding expense:', error);
+    else if (data) setExpenses(prev => [...prev, data as Expense]);
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
     const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
-    if (error) { alert(`Error al eliminar gasto: ${error.message}`); }
+    if (error) console.error('Error deleting expense:', error);
     else setExpenses(prev => prev.filter(e => e.id !== expenseId));
   };
-
+  
   const handleUpdateClient = async (clientData: Pick<Client, 'id' | 'name' | 'email' | 'phone'>) => {
     const { data, error } = await supabase.from('clients').update({ name: clientData.name, email: clientData.email, phone: clientData.phone }).eq('id', clientData.id).select().single();
-    if (error) { alert(`Error al actualizar cliente: ${error.message}`); }
-    else if (data) {
-      setClients(prev => prev.map(c => c.id === data.id ? data : c));
-      alert('Cliente actualizado con éxito.');
+    if (error) {
+        console.error('Error updating client:', error);
+        alert('Error al actualizar el cliente.');
+    } else if (data) {
+        setClients(prev => prev.map(c => c.id === clientData.id ? data as Client : c));
     }
   };
 
-  // Product Handlers
   const handleAddProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'>) => {
     if (!profile?.barber_shop_id) return;
-    const { data, error } = await supabase.from('products').insert({ ...productData, barber_shop_id: profile.barber_shop_id }).select().single();
-    if (error) { alert(`Error al añadir producto: ${error.message}`); }
-    else if(data) { setProducts(prev => [...prev, data]); }
+    const { data, error } = await supabase.from('productos').insert({ ...productData, barber_shop_id: profile.barber_shop_id }).select().single();
+    if (error) { console.error('Error adding product:', error); alert(`Error al añadir producto: ${error.message}`); }
+    else if (data) setProducts(prev => [...prev, data as Product]);
   };
 
   const handleUpdateProduct = async (productData: Product) => {
-    const { data, error } = await supabase.from('products').update(productData).eq('id', productData.id).select().single();
-     if (error) { alert(`Error al actualizar producto: ${error.message}`); }
-    else if(data) { setProducts(prev => prev.map(p => p.id === data.id ? data : p)); }
+    const { data, error } = await supabase.from('productos').update(productData).eq('id', productData.id).select().single();
+    if (error) { console.error('Error updating product:', error); alert(`Error al actualizar producto: ${error.message}`); }
+    else if (data) setProducts(prev => prev.map(p => p.id === productData.id ? data as Product : p));
   };
 
   const handleDeleteProduct = async (productId: string) => {
-     const { error } = await supabase.from('products').delete().eq('id', productId);
-    if (error) { alert(`Error al eliminar producto: ${error.message}`); }
-    else { setProducts(prev => prev.filter(p => p.id !== productId)); }
+    const { error } = await supabase.from('productos').delete().eq('id', productId);
+    if (error) { console.error('Error deleting product:', error); alert(`Error al eliminar producto: ${error.message}`); }
+    else setProducts(prev => prev.filter(p => p.id !== productId));
   };
 
-  // Promotion Handlers
-  const handleUpdateBarberShopPromotions = async (shopId: string, updatedPromotions: Promotion[]) => {
-    const { data, error } = await supabase.from('barber_shops').update({ promotions: updatedPromotions }).eq('id', shopId).select().single();
-    if (error) { alert(`Error al guardar las promociones: ${error.message}.`); }
-    else if (data) {
-      const updatedShop = data as BarberShop;
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
-      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, promotions: updatedShop.promotions } : s)));
-      alert('Promociones actualizadas con éxito.');
-    }
-  };
-
-  // Theme Handlers
-  const handleUpdateBarberShopTheme = async (shopId: string, theme: { primary_color: string; secondary_color: string }) => {
-    const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
-     if (error) { alert(`Error al guardar el tema: ${error.message}.`); }
-    else if (data) {
-      const updatedShop = data as BarberShop;
-      setBarberShops(prev => prev.map(s => (s.id === shopId ? updatedShop : s)));
-      setAdminBarberShops(prev => prev.map(s => (s.id === shopId ? { ...s, primary_color: updatedShop.primary_color, secondary_color: updatedShop.secondary_color } : s)));
-      alert('Tema actualizado con éxito.');
-    }
+  const handleUpdatePromotions = async (shopId: string, promotions: Promotion[]) => {
+    const { data, error } = await supabase.from('barber_shops').update({ promotions }).eq('id', shopId).select().single();
+    if (error) console.error('Error updating promotions:', error);
+    else if (data) setBarberShops(prev => prev.map(s => s.id === shopId ? data as BarberShop : s));
   };
 
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen"><h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Cargando NestorBarberPro...</h1></div>;
-  }
-
+  // --- RENDER LOGIC ---
   const renderContent = () => {
-    if (session && profile) {
-      if (profile.role === 'Admin') return <AdminDashboard barberShops={adminBarberShops} bookings={bookings} onAddBarberShopAndUser={handleAddBarberShopAndUser} onUpdateBarberShopStatus={handleUpdateBarberShopStatus} onUpdateBarberShopLicense={handleUpdateBarberShopLicense} onDeleteBarberShop={handleDeleteBarberShopAndUser} onUpdateBarberShopTheme={handleUpdateBarberShopTheme} />;
-      if (profile.role === 'Barber' && loggedInBarberShop) return <BarberDashboard barberShop={loggedInBarberShop} bookings={bookings.filter(b => b.barber_shop_id === loggedInBarberShop.id)} clients={clients} expenses={expenses} products={products} onUpdateBookingStatus={handleUpdateBookingStatus} onUpdateServices={handleUpdateBarberShopServices} onUpdateSchedule={handleUpdateBarberShopSchedule} onUploadLogo={handleUploadLogo} onAddExpense={handleAddExpense} onDeleteExpense={handleDeleteExpense} onUpdateClient={handleUpdateClient} onAddProduct={handleAddProduct} onUpdateProduct={handleUpdateProduct} onDeleteProduct={handleDeleteProduct} onUpdatePromotions={handleUpdateBarberShopPromotions} onUpdateTheme={handleUpdateBarberShopTheme} />;
-      return <div className="text-center p-8"><p>Error: Rol de usuario no reconocido o barbería no asignada.</p></div>;
+    if (isLoading) {
+      return <div className="text-center p-8 text-brand-text-secondary">Cargando plataforma...</div>;
+    }
+
+    if (profile?.role === 'Admin') {
+      return <AdminDashboard 
+        barberShops={adminBarberShops} 
+        bookings={bookings} 
+        onAddBarberShopAndUser={handleAddBarberShopAndUser} 
+        onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
+        onUpdateBarberShopLicense={handleUpdateBarberShopLicense}
+        onDeleteBarberShop={handleDeleteBarberShop}
+        onUpdateBarberShopTheme={handleUpdateBarberShopTheme}
+      />;
+    }
+
+    if (profile?.role === 'Barber' && loggedInBarberShop) {
+      return <BarberDashboard 
+        barberShop={loggedInBarberShop} 
+        bookings={bookings} 
+        clients={clients}
+        expenses={expenses}
+        products={products}
+        onUpdateBookingStatus={handleUpdateBookingStatus}
+        onUpdateServices={handleUpdateServices}
+        onUpdateSchedule={handleUpdateSchedule}
+        onUploadLogo={handleUploadLogo}
+        onAddExpense={handleAddExpense}
+        onDeleteExpense={handleDeleteExpense}
+        onUpdateClient={handleUpdateClient}
+        onAddProduct={handleAddProduct}
+        onUpdateProduct={handleUpdateProduct}
+        onDeleteProduct={handleDeleteProduct}
+        onUpdatePromotions={handleUpdatePromotions}
+        onUpdateTheme={handleUpdateBarberShopTheme}
+      />;
+    }
+
+    if (view === 'login') {
+      return <LoginPage />;
+    }
+
+    if (clientSelectedShop) {
+      return <ClientBookingView 
+                barberShop={clientSelectedShop} 
+                bookings={bookings.filter(b => b.barber_shop_id === selectedShopId)} 
+                onBookingConfirmed={handleBookingConfirmed}
+                onReturnToShopSelection={handleReturnToShopSelection}
+              />;
     }
     
-    if (view === 'login') return <LoginPage />;
-    if (clientSelectedShop) return <ClientBookingView barberShop={clientSelectedShop} bookings={bookings.filter(b => b.barber_shop_id === clientSelectedShop.id)} onBookingConfirmed={(bookingData) => handleBookingConfirmed({...bookingData, barber_shop_id: clientSelectedShop.id})} onReturnToShopSelection={handleReturnToShopSelection} />;
     return <ShopSelectionView barberShops={barberShops} onSelectShop={handleSelectShop} />;
   };
-  
+
+  const activeShop = clientSelectedShop || loggedInBarberShop;
+
   return (
-    <div className="bg-brand-bg text-brand-text min-h-screen font-sans">
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <BarberShopHeader user={session?.user ?? null} onNavigateToLogin={handleNavigateToLogin} onLogout={handleLogout} barberShopName={clientSelectedShop?.name || loggedInBarberShop?.name} slogan={clientSelectedShop?.slogan || loggedInBarberShop?.slogan} logoUrl={clientSelectedShop?.logo_url || loggedInBarberShop?.logo_url} />
-        <div className="mt-8">{renderContent()}</div>
+    <div className="min-h-screen font-sans">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <BarberShopHeader 
+          user={session?.user || null}
+          onNavigateToLogin={handleNavigateToLogin}
+          onLogout={handleLogout}
+          barberShopName={activeShop?.name}
+          slogan={activeShop?.slogan}
+          logoUrl={activeShop?.logo_url}
+        />
+        <div className="mt-8 sm:mt-12">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
