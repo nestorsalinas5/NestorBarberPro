@@ -5,6 +5,7 @@ interface BarberShopListItemProps {
   barberShop: BarberShopWithUser;
   onUpdateStatus: (shopId: string, status: BarberShopWithUser['status']) => void;
   onManageLicense: (shop: BarberShopWithUser) => void;
+  onManageTheme: (shop: BarberShopWithUser) => void;
   onDelete: (shop: BarberShopWithUser) => void;
 }
 
@@ -13,7 +14,7 @@ const statusStyles: Record<BarberShopWithUser['status'], { indicator: string, te
   'Suspendida': { indicator: 'bg-red-500', text: 'text-red-400' },
 };
 
-export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus, onManageLicense, onDelete }) => {
+export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberShop, onUpdateStatus, onManageLicense, onManageTheme, onDelete }) => {
   const { indicator, text } = statusStyles[barberShop.status];
   const isSuspended = barberShop.status === 'Suspendida';
 
@@ -42,7 +43,10 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
   return (
     <div className="bg-black/20 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors hover:bg-black/40">
       <div className="flex-grow">
-        <p className="font-bold text-lg text-brand-text">{barberShop.name}</p>
+        <div className="flex items-center gap-4">
+            <p className="font-bold text-lg text-brand-text">{barberShop.name}</p>
+            {barberShop.primary_color && <span className="h-4 w-4 rounded-full" style={{ backgroundColor: barberShop.primary_color }}></span>}
+        </div>
         <div className="flex items-center gap-2 mt-1">
           <span className={`h-2 w-2 rounded-full ${indicator}`}></span>
           <span className={`text-xs font-semibold ${text}`}>{barberShop.status}</span>
@@ -62,6 +66,12 @@ export const BarberShopListItem: React.FC<BarberShopListItemProps> = ({ barberSh
             className="px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 transition-colors"
         >
             Licencia
+        </button>
+         <button
+            onClick={() => onManageTheme(barberShop)}
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 transition-colors"
+        >
+            Personalizar
         </button>
         {isSuspended ? (
           <button
