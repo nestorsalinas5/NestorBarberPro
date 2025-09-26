@@ -10,16 +10,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'brand-bg': '#121212', // Very dark gray, almost black
-        'brand-surface': '#1E1E1E', // Lighter dark gray for cards/modals
-        'brand-text': '#E0E0E0', // Main text color (off-white)
-        'brand-text-secondary': '#A0A0A0', // Lighter text for secondary info
-        'brand-primary': 'var(--color-primary, #D4AF37)', // Gold accent color (now a CSS variable)
-        'brand-secondary': 'var(--color-secondary, #F0C44D)', // Lighter gold for hover effects (now a CSS variable)
+        'brand-dark-green': '#556B58', // Muted, earthy green for backgrounds
+        'brand-light-beige': '#F5EBE0', // Warm, off-pink/beige for content cards
+        'brand-dark-charcoal': '#3D403D', // Dark, desaturated green/charcoal for text and accents
+        'brand-white': '#FFFFFF',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        sans: ['Poppins', 'sans-serif'],
+        serif: ['Roboto Slab', 'serif'],
       },
       keyframes: {
         'fade-in': {
