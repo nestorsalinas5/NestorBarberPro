@@ -10,7 +10,7 @@ interface TimeSlotGridProps {
 
 export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectTimeSlot, selectedTimeSlot, selectedDate }) => {
   if (!timeSlots || timeSlots.length === 0) {
-    return <div className="text-center text-brand-text-secondary py-8">No hay horarios disponibles para este día.</div>;
+    return <div className="text-center text-brand-dark-charcoal/70 py-8">No hay horarios disponibles para este día.</div>;
   }
 
   const isWeekend = selectedDate && (selectedDate.getDay() === 5 || selectedDate.getDay() === 6);
@@ -18,11 +18,11 @@ export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectT
   return (
     <div className="animate-fade-in">
       {isWeekend && (
-        <div className="mb-4 p-3 bg-brand-primary/10 border border-brand-primary/30 rounded-lg text-center">
-          <p className="font-semibold text-brand-primary">
+        <div className="mb-4 p-3 bg-brand-dark-charcoal/5 border border-brand-dark-charcoal/20 rounded-lg text-center">
+          <p className="font-semibold text-brand-dark-charcoal">
             Sistema de Citas por Cupos
           </p>
-          <p className="text-sm text-brand-text-secondary">Los fines de semana operan con un número limitado de citas en horarios consecutivos.</p>
+          <p className="text-sm text-brand-dark-charcoal/70">Los fines de semana operan con un número limitado de citas.</p>
         </div>
       )}
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -31,10 +31,10 @@ export const TimeSlotGrid: React.FC<TimeSlotGridProps> = ({ timeSlots, onSelectT
             key={slot.time}
             disabled={!slot.isAvailable}
             onClick={() => onSelectTimeSlot(slot)}
-            className={`p-3 rounded-md text-sm font-semibold transition-all duration-200
-              ${!slot.isAvailable ? 'bg-gray-800 text-gray-600 cursor-not-allowed line-through' : ''}
-              ${slot.isAvailable && selectedTimeSlot?.time === slot.time ? 'bg-brand-primary text-brand-bg shadow-lg scale-105' : ''}
-              ${slot.isAvailable && selectedTimeSlot?.time !== slot.time ? 'bg-black/30 text-brand-text hover:bg-brand-secondary hover:text-brand-bg' : ''}
+            className={`p-3 rounded-md text-sm font-semibold transition-all duration-200 border-2
+              ${!slot.isAvailable ? 'bg-brand-light-beige/50 text-brand-dark-charcoal/40 border-transparent cursor-not-allowed line-through' : ''}
+              ${slot.isAvailable && selectedTimeSlot?.time === slot.time ? 'bg-brand-dark-charcoal text-brand-light-beige border-brand-dark-charcoal shadow-lg scale-105' : ''}
+              ${slot.isAvailable && selectedTimeSlot?.time !== slot.time ? 'bg-brand-light-beige text-brand-dark-charcoal border-brand-light-beige hover:border-brand-dark-charcoal/50' : ''}
             `}
           >
             {slot.time}
