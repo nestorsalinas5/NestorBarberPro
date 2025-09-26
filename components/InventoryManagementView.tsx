@@ -1,21 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import type { Product } from '../types';
 import { ProductEditModal } from './ProductEditModal';
+import { ProductSaleModal } from './ProductSaleModal';
 
 interface InventoryManagementViewProps {
   products: Product[];
   onAddProduct: (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'>) => Promise<void>;
   onUpdateProduct: (productData: Product) => Promise<void>;
   onDeleteProduct: (productId: string) => Promise<void>;
+  onSellProduct: (product: Product, quantity: number) => Promise<void>;
 }
 
 const TrashIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}> <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.067-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /> </svg> );
 const PencilIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}> <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /> </svg> );
 
-export const InventoryManagementView: React.FC<InventoryManagementViewProps> = ({ products, onAddProduct, onUpdateProduct, onDeleteProduct }) => {
+export const InventoryManagementView: React.FC<InventoryManagementViewProps> = ({ products, onAddProduct, onUpdateProduct, onDeleteProduct, onSellProduct }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
+  const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
 
   const filteredProducts = useMemo(() => {
     return products
@@ -26,8 +30,8 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [products, searchTerm]);
 
-  const openModalForNew = () => { setEditingProduct(null); setIsModalOpen(true); };
-  const openModalForEdit = (product: Product) => { setEditingProduct(product); setIsModalOpen(true); };
+  const openEditModalForNew = () => { setEditingProduct(null); setIsEditModalOpen(true); };
+  const openEditModalForEdit = (product: Product) => { setEditingProduct(product); setIsEditModalOpen(true); };
   
   const handleSaveProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'barber_shop_id'> | Product) => {
     if ('id' in productData) {
@@ -35,7 +39,17 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
     } else {
       await onAddProduct(productData);
     }
-    setIsModalOpen(false);
+    setIsEditModalOpen(false);
+  };
+
+  const openSaleModal = (product: Product) => {
+    setSellingProduct(product);
+    setIsSaleModalOpen(true);
+  };
+  
+  const handleConfirmSale = async (product: Product, quantity: number) => {
+    await onSellProduct(product, quantity);
+    setIsSaleModalOpen(false);
   };
 
   const getStockColor = (stock: number) => {
@@ -60,7 +74,7 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full md:max-w-xs bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
                 />
-                 <button onClick={openModalForNew} className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors whitespace-nowrap">+ Añadir</button>
+                 <button onClick={openEditModalForNew} className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors whitespace-nowrap">+ Añadir</button>
             </div>
         </div>
         
@@ -84,7 +98,8 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text">₲{product.price.toLocaleString('es-PY')}</td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${getStockColor(product.stock_quantity)}`}>{product.stock_quantity} unidades</td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <button onClick={() => openModalForEdit(product)} className="text-brand-primary hover:text-brand-secondary p-2"><PencilIcon className="w-5 h-5" /></button>
+                                <button onClick={() => openSaleModal(product)} className="text-green-400 hover:text-green-300 disabled:text-gray-600 p-2 font-semibold text-xs" disabled={product.stock_quantity === 0}>VENDER</button>
+                                <button onClick={() => openEditModalForEdit(product)} className="text-brand-primary hover:text-brand-secondary p-2"><PencilIcon className="w-5 h-5" /></button>
                                 <button onClick={() => onDeleteProduct(product.id)} className="text-red-400 hover:text-red-500 p-2"><TrashIcon className="w-5 h-5" /></button>
                             </td>
                         </tr>
@@ -100,10 +115,16 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
         )}
     </div>
     <ProductEditModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveProduct}
         product={editingProduct}
+    />
+    <ProductSaleModal 
+        isOpen={isSaleModalOpen}
+        onClose={() => setIsSaleModalOpen(false)}
+        onConfirm={handleConfirmSale}
+        product={sellingProduct}
     />
     </>
   );
