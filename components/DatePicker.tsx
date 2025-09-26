@@ -47,7 +47,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSele
   const weekDays = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
 
   return (
-    <div className="bg-brand-light-beige p-4 rounded-lg animate-fade-in">
+    <div className="bg-white/80 p-4 rounded-lg animate-fade-in border border-brand-dark-charcoal/10">
+       <h3 className="text-2xl font-bold text-brand-dark-charcoal font-serif mb-4">2. Elige una Fecha</h3>
       <div className="flex justify-between items-center mb-4">
         <button onClick={prevMonth} className="p-2 rounded-full hover:bg-brand-dark-charcoal/10 transition">
           <ChevronLeftIcon className="w-5 h-5 text-brand-dark-charcoal" />
@@ -74,8 +75,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSele
               onClick={() => handleDayClick(day)}
               disabled={isPast || isSunday}
               className={`p-2 rounded-md transition-colors duration-200 text-sm font-semibold
-                ${isPast || isSunday ? 'text-brand-dark-charcoal/30 cursor-not-allowed' : 'hover:bg-brand-dark-charcoal/10'}
-                ${isSelected ? 'bg-brand-dark-charcoal text-brand-light-beige' : 'text-brand-dark-charcoal'}
+                ${isPast || isSunday ? 'text-brand-dark-charcoal/30 cursor-not-allowed' : 'hover:bg-brand-gold/20'}
+                ${isSelected ? 'bg-brand-gold text-brand-dark-charcoal' : 'text-brand-dark-charcoal'}
               `}
             >
               {day}
