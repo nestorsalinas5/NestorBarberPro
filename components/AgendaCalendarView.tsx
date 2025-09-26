@@ -46,23 +46,23 @@ export const AgendaCalendarView: React.FC<AgendaCalendarViewProps> = ({ bookings
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const weekDays = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
 
   return (
-    <div>
+    <div className="text-brand-dark-charcoal">
       <div className="flex justify-between items-center mb-4">
-        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-black/20 transition">
-          <ChevronLeftIcon className="w-5 h-5 text-brand-primary" />
+        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-brand-dark-charcoal/10 transition">
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
-        <h3 className="font-bold text-lg text-brand-text capitalize">
+        <h3 className="font-bold text-lg capitalize">
           {currentMonth.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}
         </h3>
-        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-black/20 transition">
-          <ChevronRightIcon className="w-5 h-5 text-brand-primary" />
+        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-brand-dark-charcoal/10 transition">
+          <ChevronRightIcon className="w-5 h-5" />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        {weekDays.map(day => <div key={day} className="text-xs font-semibold text-brand-text-secondary p-2">{day}</div>)}
+        {weekDays.map(day => <div key={day} className="text-xs font-semibold text-brand-dark-charcoal/60 p-2">{day}</div>)}
         {Array.from({ length: startDay }).map((_, i) => <div key={`empty-${i}`} />)}
         {days.map(day => {
           const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
@@ -75,14 +75,14 @@ export const AgendaCalendarView: React.FC<AgendaCalendarViewProps> = ({ bookings
             <button
               key={day}
               onClick={() => onDateSelect(date)}
-              className={`p-2 rounded-full transition-colors duration-200 text-sm relative
-                hover:bg-brand-primary hover:text-brand-bg
-                ${isSelected ? 'bg-brand-primary text-brand-bg font-bold' : 'text-brand-text'}
-                ${isToday && !isSelected ? 'border border-brand-secondary' : ''}
+              className={`p-2 rounded-md transition-colors duration-200 text-sm relative font-semibold
+                hover:bg-brand-dark-charcoal/10
+                ${isSelected ? 'bg-brand-dark-charcoal text-brand-light-beige' : ''}
+                ${isToday && !isSelected ? 'border border-brand-dark-green' : ''}
               `}
             >
               {day}
-              {hasBookings && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 bg-brand-secondary rounded-full"></span>}
+              {hasBookings && <span className={`absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-brand-light-beige' : 'bg-brand-dark-green'}`}></span>}
             </button>
           );
         })}
