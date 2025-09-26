@@ -21,8 +21,9 @@ export const LicenseWarningBanner: React.FC<LicenseWarningBannerProps> = ({ lice
     : `Tu licencia expira en ${diffDays} ${diffDays === 1 ? 'día' : 'días'}.`;
 
   return (
-    <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm p-4 rounded-lg mb-6 text-center animate-fade-in">
-      <strong>¡Atención!</strong> {message} Por favor, contacta al administrador para renovarla y evitar la suspensión del servicio.
+    <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 text-sm p-4 rounded-md mb-6 text-left animate-fade-in">
+      <strong className="font-bold">¡Atención!</strong>
+      <span className="block sm:inline ml-2">{message} Por favor, contacta al administrador para renovarla y evitar la suspensión del servicio.</span>
     </div>
   );
 };
