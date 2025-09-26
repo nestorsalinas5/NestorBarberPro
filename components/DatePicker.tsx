@@ -44,23 +44,23 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSele
     }
   };
 
-  const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const weekDays = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
 
   return (
-    <div className="bg-black/20 p-4 rounded-lg animate-fade-in">
+    <div className="bg-brand-light-beige p-4 rounded-lg animate-fade-in">
       <div className="flex justify-between items-center mb-4">
-        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-brand-surface transition">
-          <ChevronLeftIcon className="w-5 h-5 text-brand-primary" />
+        <button onClick={prevMonth} className="p-2 rounded-full hover:bg-brand-dark-charcoal/10 transition">
+          <ChevronLeftIcon className="w-5 h-5 text-brand-dark-charcoal" />
         </button>
-        <h3 className="font-bold text-lg text-brand-text capitalize">
+        <h3 className="font-bold text-lg text-brand-dark-charcoal capitalize">
           {currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}
         </h3>
-        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-brand-surface transition">
-          <ChevronRightIcon className="w-5 h-5 text-brand-primary" />
+        <button onClick={nextMonth} className="p-2 rounded-full hover:bg-brand-dark-charcoal/10 transition">
+          <ChevronRightIcon className="w-5 h-5 text-brand-dark-charcoal" />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        {weekDays.map(day => <div key={day} className="text-xs font-semibold text-brand-text-secondary p-2">{day}</div>)}
+        {weekDays.map(day => <div key={day} className="text-xs font-semibold text-brand-dark-charcoal/60 p-2">{day}</div>)}
         {Array.from({ length: startDay }).map((_, i) => <div key={`empty-${i}`} />)}
         {days.map(day => {
           const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
@@ -73,9 +73,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSele
               key={day}
               onClick={() => handleDayClick(day)}
               disabled={isPast || isSunday}
-              className={`p-2 rounded-full transition-colors duration-200 text-sm
-                ${isPast || isSunday ? 'text-gray-600 cursor-not-allowed' : 'hover:bg-brand-primary hover:text-brand-bg'}
-                ${isSelected ? 'bg-brand-primary text-brand-bg font-bold' : 'text-brand-text'}
+              className={`p-2 rounded-md transition-colors duration-200 text-sm font-semibold
+                ${isPast || isSunday ? 'text-brand-dark-charcoal/30 cursor-not-allowed' : 'hover:bg-brand-dark-charcoal/10'}
+                ${isSelected ? 'bg-brand-dark-charcoal text-brand-light-beige' : 'text-brand-dark-charcoal'}
               `}
             >
               {day}
