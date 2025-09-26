@@ -30,6 +30,7 @@ interface BarberDashboardProps {
   onDeleteProduct: (productId: string) => Promise<void>;
   onUpdatePromotions: (shopId: string, promotions: Promotion[]) => Promise<void>;
   onUpdateTheme: (shopId: string, theme: { color_primario: string; color_secundario: string }) => Promise<void>;
+  onSellProduct: (product: Product, quantity: number) => Promise<void>;
 }
 
 type Tab = 'agenda' | 'clients' | 'reports' | 'inventory' | 'settings';
@@ -38,7 +39,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
   const { 
       barberShop, bookings, clients, expenses, products, onUpdateBookingStatus, onUpdateServices, 
       onUpdateSchedule, onUploadLogo, onAddExpense, onDeleteExpense, onUpdateClient,
-      onAddProduct, onUpdateProduct, onDeleteProduct, onUpdatePromotions, onUpdateTheme
+      onAddProduct, onUpdateProduct, onDeleteProduct, onUpdatePromotions, onUpdateTheme, onSellProduct
   } = props;
   
   const [activeTab, setActiveTab] = useState<Tab>('agenda');
@@ -99,7 +100,7 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = (props) => {
       )}
 
       {activeTab === 'clients' && <ClientManagementView clients={clients} onUpdateClient={onUpdateClient} />}
-      {activeTab === 'inventory' && <InventoryManagementView products={products} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} />}
+      {activeTab === 'inventory' && <InventoryManagementView products={products} onAddProduct={onAddProduct} onUpdateProduct={onUpdateProduct} onDeleteProduct={onDeleteProduct} onSellProduct={onSellProduct} />}
       {activeTab === 'reports' && <ReportingView barberShop={barberShop} bookings={bookings} expenses={expenses} onAddExpense={onAddExpense} onDeleteExpense={onDeleteExpense} />}
       {activeTab === 'settings' && <BarberSettingsView barberShop={barberShop} onUpdateServices={onUpdateServices} onUpdateSchedule={onUpdateSchedule} onUploadLogo={onUploadLogo} onUpdatePromotions={onUpdatePromotions} onUpdateTheme={onUpdateTheme} />}
       
