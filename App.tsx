@@ -250,11 +250,11 @@ function App() {
     const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
     if (error) {
         console.error('Error updating theme:', error);
-        const detailedMessage = `Error al actualizar el tema.\n\nDetalles del error: ${error.message}\n\nPor favor, comprueba que las columnas 'color_primario' y 'color_secundario' existen en tu tabla 'barber_shops' y que tu usuario tiene permisos (RLS) para actualizarlas.`;
-        alert(detailedMessage);
+        alert('Error al actualizar el tema.');
     } else if (data) {
-        setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } : s));
-        setBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...data } as BarberShop : s));
+        const updatedShopData = data as BarberShop;
+        setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...updatedShopData } : s));
+        setBarberShops(prev => prev.map(s => s.id === shopId ? updatedShopData : s));
     }
   };
 
@@ -342,6 +342,23 @@ function App() {
     if (error) console.error('Error updating promotions:', error);
     else if (data) setBarberShops(prev => prev.map(s => s.id === shopId ? data as BarberShop : s));
   };
+  
+  const handleProductSale = async (product: Product, quantitySold: number) => {
+    if (!profile?.barber_shop_id) return;
+    
+    // 1. Update product stock
+    const updatedProduct = { ...product, stock_quantity: product.stock_quantity - quantitySold };
+    await handleUpdateProduct(updatedProduct);
+
+    // 2. Add expense record for the sale (as income)
+    const saleData = {
+      description: `Venta: ${quantitySold} x ${product.name}`,
+      amount: -1 * product.price * quantitySold, // Negative amount for income
+      date: new Date().toISOString().split('T')[0],
+      category: 'Venta de Producto',
+    };
+    await handleAddExpense(saleData);
+  };
 
 
   // --- RENDER LOGIC ---
@@ -381,6 +398,7 @@ function App() {
         onDeleteProduct={handleDeleteProduct}
         onUpdatePromotions={handleUpdatePromotions}
         onUpdateTheme={handleUpdateBarberShopTheme}
+        onSellProduct={handleProductSale}
       />;
     }
 
