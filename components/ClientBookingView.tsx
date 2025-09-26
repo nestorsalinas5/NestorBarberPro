@@ -34,6 +34,80 @@ const PromotionsBanner: React.FC<{ promotions: BarberShop['promotions'] }> = ({ 
   );
 };
 
+const StepIndicator: React.FC<{ currentStep: number }> = ({ currentStep }) => {
+    const steps = [
+        { number: 1, title: 'Servicios' },
+        { number: 2, title: 'Fecha y Hora' },
+        { number: 3, title: 'Fecha y Hora' }, // Merged step
+        { number: 4, title: 'Confirmar' }
+    ];
+    
+    // Unify steps 2 and 3 for the indicator
+    const displaySteps = [
+        { number: 1, title: 'Servicios' },
+        { number: 2, title: 'Fecha y Hora' },
+        { number: 4, title: 'Confirmar' }
+    ];
+
+    const getStepStatus = (stepNumber: number) => {
+        let normalizedCurrentStep = currentStep;
+        if (currentStep === 3) normalizedCurrentStep = 2;
+
+        if (stepNumber < normalizedCurrentStep) return 'completed';
+        if (stepNumber === normalizedCurrentStep) return 'current';
+        return 'upcoming';
+    };
+
+
+    return (
+        <nav aria-label="Progress">
+            <ol role="list" className="flex items-center">
+                {displaySteps.map((step, stepIdx) => (
+                    <li key={step.title} className={`relative ${stepIdx !== displaySteps.length - 1 ? 'flex-1' : ''}`}>
+                        {(() => {
+                            const status = getStepStatus(step.number);
+                            if (status === 'completed') {
+                                return (
+                                    <>
+                                        <div className="absolute inset-0 top-6 flex items-center" aria-hidden="true">
+                                            <div className="h-0.5 w-full bg-brand-gold" />
+                                        </div>
+                                        <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold">
+                                            <svg className="h-5 w-5 text-brand-dark-charcoal" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </>
+                                );
+                            } else if (status === 'current') {
+                                return (
+                                     <>
+                                        <div className="absolute inset-0 top-6 flex items-center" aria-hidden="true">
+                                            <div className="h-0.5 w-full bg-brand-dark-charcoal/20" />
+                                        </div>
+                                        <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-brand-gold bg-brand-light-beige">
+                                            <span className="h-3 w-3 rounded-full bg-brand-gold" />
+                                        </div>
+                                     </>
+                                );
+                            } else { // upcoming
+                                return (
+                                     <>
+                                        <div className="absolute inset-0 top-6 flex items-center" aria-hidden="true">
+                                            <div className="h-0.5 w-full bg-brand-dark-charcoal/20" />
+                                        </div>
+                                        <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-brand-dark-charcoal/20 bg-brand-light-beige" />
+                                     </>
+                                );
+                            }
+                        })()}
+                         <p className="absolute top-14 w-max -ml-2 text-center text-sm font-semibold text-brand-dark-charcoal">{step.title}</p>
+                    </li>
+                ))}
+            </ol>
+        </nav>
+    );
+};
 
 export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop, bookings, onBookingConfirmed, onReturnToShopSelection }) => {
   const {
@@ -72,31 +146,24 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
     }
   };
 
-  const getStepTitle = () => {
-    switch (step) {
-      case 1: return "1. Selecciona tus Servicios";
-      case 2: return "2. Elige una Fecha";
-      case 3: return "3. Escoge un Horario";
-      case 4: return "4. Confirma tus Datos";
-      default: return "";
-    }
-  };
-
   return (
     <>
       <div className="mb-4">
         <button 
             onClick={onReturnToShopSelection}
-            className="text-sm text-brand-light-beige hover:text-white transition-colors font-semibold"
+            className="text-sm text-brand-light-beige/80 hover:text-white transition-colors font-semibold"
         >
             &larr; Volver a la lista de barberías
         </button>
       </div>
       
-      <div className="bg-brand-light-beige rounded-lg shadow-2xl overflow-hidden">
+      <div className="bg-brand-light-beige/90 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl overflow-hidden max-w-6xl mx-auto">
+        <div className="p-6 sm:p-8 border-b border-brand-dark-charcoal/10">
+            <StepIndicator currentStep={step} />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3">
           
-           <aside className="lg:col-span-1 p-6 bg-brand-dark-charcoal/5 lg:border-r lg:border-brand-dark-charcoal/10">
+           <aside className="lg:col-span-1 p-6 sm:p-8 bg-brand-dark-charcoal/5 lg:border-r lg:border-brand-dark-charcoal/10">
             <BookingSummary 
               services={selectedServices}
               date={selectedDate}
@@ -104,9 +171,8 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
             />
           </aside>
           
-          <div className="lg:col-span-2 p-6">
+          <div className="lg:col-span-2 p-6 sm:p-8">
             <PromotionsBanner promotions={barberShop.promotions} />
-            <h2 className="text-2xl font-bold text-brand-dark-charcoal mb-6">{getStepTitle()}</h2>
             {getStepComponent()}
           </div>
           
