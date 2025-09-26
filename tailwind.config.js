@@ -14,6 +14,7 @@ export default {
         'brand-light-beige': '#F5EBE0', // Warm, off-pink/beige for content cards
         'brand-dark-charcoal': '#3D403D', // Dark, desaturated green/charcoal for text and accents
         'brand-white': '#FFFFFF',
+        'brand-gold': '#C5A35A', // A new gold accent color
       },
       fontFamily: {
         sans: ['Poppins', 'sans-serif'],
