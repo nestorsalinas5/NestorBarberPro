@@ -44,38 +44,38 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
 
   return (
     <>
-    <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8 animate-fade-in">
+    <div className="bg-brand-light-beige text-brand-dark-charcoal rounded-lg shadow-2xl overflow-hidden p-6 md:p-8 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h3 className="text-2xl font-bold text-brand-text">Gestión de Clientes</h3>
-                <p className="text-sm text-brand-text-secondary">Aquí puedes ver toda tu base de datos de clientes.</p>
+                <h3 className="text-2xl font-bold">Gestión de Clientes</h3>
+                <p className="text-sm text-brand-dark-charcoal/80">Aquí puedes ver toda tu base de datos de clientes.</p>
             </div>
              <input
                 type="text"
                 placeholder="Buscar cliente..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full md:max-w-xs bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="w-full md:max-w-xs bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-dark-green focus:border-brand-dark-green"
             />
         </div>
 
         {/* Mobile View: Card List */}
         <div className="md:hidden space-y-4">
             {filteredClients.map(client => (
-                <div key={client.id} className="bg-black/20 p-4 rounded-lg">
+                <div key={client.id} className="bg-white p-4 rounded-lg border border-gray-200">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="font-bold text-brand-text">{client.name}</p>
-                            <p className="text-sm text-brand-text-secondary">{client.email}</p>
-                            <p className="text-xs text-gray-400">{client.phone || 'Sin teléfono'}</p>
+                            <p className="font-bold">{client.name}</p>
+                            <p className="text-sm text-brand-dark-charcoal/80">{client.email}</p>
+                            <p className="text-xs text-gray-500">{client.phone || 'Sin teléfono'}</p>
                         </div>
-                        <button onClick={() => handleEditClick(client)} className="text-brand-primary hover:text-brand-secondary p-1">
+                        <button onClick={() => handleEditClick(client)} className="text-brand-dark-green hover:text-opacity-80 p-1">
                             <PencilIcon className="w-5 h-5" />
                         </button>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-gray-700/50 flex justify-between text-sm">
-                        <span className="text-brand-text-secondary">Última Visita: <span className="font-semibold text-brand-text">{formatDate(client.last_visit)}</span></span>
-                        <span className="text-brand-text-secondary">Citas: <span className="font-semibold text-brand-text">{client.total_bookings}</span></span>
+                    <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm">
+                        <span className="text-brand-dark-charcoal/80">Última Visita: <span className="font-semibold text-brand-dark-charcoal">{formatDate(client.last_visit)}</span></span>
+                        <span className="text-brand-dark-charcoal/80">Citas: <span className="font-semibold text-brand-dark-charcoal">{client.total_bookings}</span></span>
                     </div>
                 </div>
             ))}
@@ -83,28 +83,28 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
 
         {/* Desktop View: Table */}
         <div className="overflow-x-auto hidden md:block">
-            <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-black/20">
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                     <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Nombre</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Contacto</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Citas Totales</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Última Visita</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Acciones</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Nombre</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Contacto</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Citas Totales</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Última Visita</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="bg-white divide-y divide-gray-200">
                     {filteredClients.map(client => (
-                        <tr key={client.id} className="hover:bg-black/20 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-semibold text-brand-text">{client.name}</div></td>
+                        <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-semibold">{client.name}</div></td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-brand-text">{client.email}</div>
-                                <div className="text-xs text-brand-text-secondary">{client.phone || 'Sin teléfono'}</div>
+                                <div className="text-sm">{client.email}</div>
+                                <div className="text-xs text-brand-dark-charcoal/80">{client.phone || 'Sin teléfono'}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text">{client.total_bookings}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text-secondary">{formatDate(client.last_visit)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{client.total_bookings}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-dark-charcoal/80">{formatDate(client.last_visit)}</td>
                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <button onClick={() => handleEditClick(client)} className="text-brand-primary hover:text-brand-secondary">
+                                <button onClick={() => handleEditClick(client)} className="text-brand-dark-green hover:text-opacity-80">
                                     <PencilIcon className="w-5 h-5" />
                                 </button>
                             </td>
@@ -115,7 +115,7 @@ export const ClientManagementView: React.FC<ClientManagementViewProps> = ({ clie
         </div>
         {filteredClients.length === 0 && (
             <div className="text-center py-16">
-                <p className="text-lg text-brand-text-secondary">No se encontraron clientes.</p>
+                <p className="text-lg text-brand-dark-charcoal/70">No se encontraron clientes.</p>
                 <p className="text-sm text-gray-500">{searchTerm ? 'Intenta con otra búsqueda.' : 'Los clientes aparecerán aquí automáticamente después de su primera reserva.'}</p>
             </div>
         )}
