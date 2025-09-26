@@ -77,25 +77,40 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
 
     setIsExporting(true);
 
+    // Create a style element with high-priority overrides for a light theme
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .pdf-export-theme {
+        background-color: white !important;
+        color: #1f2937 !important;
+      }
+      .pdf-export-theme h1, .pdf-export-theme h2, .pdf-export-theme .text-brand-primary {
+        color: #000000 !important;
+      }
+      .pdf-export-theme .text-brand-text-secondary, .pdf-export-theme footer {
+        color: #4b5563 !important;
+      }
+      .pdf-export-theme .text-green-400 {
+        color: #166534 !important;
+      }
+      .pdf-export-theme .text-red-400 {
+        color: #991b1b !important;
+      }
+      .pdf-export-theme .border-b, .pdf-export-theme .border-gray-700, .pdf-export-theme .border-brand-primary {
+        border-color: #e5e7eb !important;
+      }
+      .pdf-export-theme thead, .pdf-export-theme .bg-black\\/20 {
+        background-color: #F3F4F6 !important;
+      }
+      .pdf-export-theme th {
+        color: #374151 !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     try {
       const elementToRender = reportElement.cloneNode(true) as HTMLDivElement;
-      
-      // --- PDF STYLING OVERRIDES FOR LIGHT THEME ---
-      elementToRender.style.backgroundColor = 'white';
-      elementToRender.style.color = '#1f2937'; // Dark gray text
-
-      elementToRender.querySelectorAll<HTMLElement>('h1, h2, .text-brand-primary').forEach(el => { el.style.color = '#000000'; });
-      elementToRender.querySelectorAll<HTMLElement>('.text-brand-text-secondary').forEach(el => { el.style.color = '#4b5563'; });
-      elementToRender.querySelectorAll<HTMLElement>('.text-green-400').forEach(el => { el.style.color = '#166534'; });
-      elementToRender.querySelectorAll<HTMLElement>('.text-red-400').forEach(el => { el.style.color = '#991b1b'; });
-      elementToRender.querySelectorAll<HTMLElement>('.border-gray-700').forEach(el => { el.style.borderColor = '#e5e7eb'; });
-      
-      const tableHeads = elementToRender.querySelectorAll('thead');
-      tableHeads.forEach((thead: HTMLElement) => {
-          thead.style.backgroundColor = '#F3F4F6'; // Light gray background
-          thead.querySelectorAll('th').forEach(th => { th.style.color = '#374151'; });
-      });
-      // --- END OF STYLING OVERRIDES ---
+      elementToRender.classList.add('pdf-export-theme');
 
       if (barberShop.logo_url) {
         const logoImgElement = elementToRender.querySelector('img');
@@ -125,10 +140,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
       elementToRender.style.left = '-9999px';
       document.body.appendChild(elementToRender);
 
-      const canvas = await html2canvas(elementToRender, {
-        backgroundColor: '#FFFFFF',
-        scale: 2,
-      });
+      const canvas = await html2canvas(elementToRender, { scale: 2 });
 
       document.body.removeChild(elementToRender);
       
@@ -143,6 +155,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
         console.error("Error generating PDF:", err);
         alert("Ocurrió un error al generar el PDF. Revisa la consola para más detalles.");
     } finally {
+        document.head.removeChild(style);
         setIsExporting(false);
     }
   };
@@ -240,7 +253,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
             <section className="mb-10">
                 <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Servicios)</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Cliente</th><th className="p-3 text-xs uppercase">Servicios</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
+                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Cliente</th><th className="p-3 text-xs uppercase">Servicios</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
                     <tbody>{filteredBookings.map(b => <tr key={b.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(b.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{b.customer.name}</td><td className="p-3 text-sm">{getServiceNames(b.service)}</td><td className="p-3 text-sm text-right">₲{getTotalPrice(b.service).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
@@ -248,7 +261,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
             <section className="mb-10">
                 <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Productos)</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
+                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
                     <tbody>{productSales.map(s => <tr key={s.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(s.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{s.description}</td><td className="p-3 text-sm text-right">₲{Math.abs(s.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
@@ -256,7 +269,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
              <section className="mb-10">
                 <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Gastos</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
+                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
                     <tbody>{realExpenses.map(e => <tr key={e.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(e.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{e.description}</td><td className="p-3 text-sm text-right">- ₲{Number(e.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
