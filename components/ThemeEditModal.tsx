@@ -27,15 +27,9 @@ export const ThemeEditModal: React.FC<ThemeEditModalProps> = ({ isOpen, onClose,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    try {
-      await onSave({ color_primario: primaryColor, color_secundario: secondaryColor });
-      onClose();
-    } catch (error) {
-      console.error("Failed to save theme:", error);
-      // Optionally, show an error message to the user
-    } finally {
-      setIsSaving(false);
-    }
+    await onSave({ color_primario: primaryColor, color_secundario: secondaryColor });
+    setIsSaving(false);
+    onClose();
   };
 
   return (
