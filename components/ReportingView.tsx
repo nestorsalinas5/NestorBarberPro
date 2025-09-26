@@ -77,65 +77,8 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
 
     setIsExporting(true);
 
-    // Create a style element with high-priority overrides for a light theme
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .pdf-export-theme {
-        background-color: white !important;
-        color: #1f2937 !important;
-      }
-      .pdf-export-theme h1, .pdf-export-theme h2, .pdf-export-theme .text-brand-primary {
-        color: #000000 !important;
-      }
-      .pdf-export-theme .text-brand-text-secondary, .pdf-export-theme footer {
-        color: #4b5563 !important;
-      }
-      .pdf-export-theme .text-green-400 {
-        color: #166534 !important;
-      }
-      .pdf-export-theme .text-red-400 {
-        color: #991b1b !important;
-      }
-      .pdf-export-theme .border-b, .pdf-export-theme .border-gray-700, .pdf-export-theme .border-brand-primary {
-        border-color: #e5e7eb !important;
-      }
-      .pdf-export-theme thead, .pdf-export-theme .bg-black\\/20 {
-        background-color: #F3F4F6 !important;
-      }
-      .pdf-export-theme th {
-        color: #374151 !important;
-      }
-    `;
-    document.head.appendChild(style);
-
     try {
       const elementToRender = reportElement.cloneNode(true) as HTMLDivElement;
-      elementToRender.classList.add('pdf-export-theme');
-
-      if (barberShop.logo_url) {
-        const logoImgElement = elementToRender.querySelector('img');
-        if (logoImgElement) {
-          try {
-            const response = await fetch(barberShop.logo_url);
-            if (!response.ok) throw new Error('Logo image could not be fetched.');
-            const blob = await response.blob();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            logoImgElement.src = dataUrl;
-            await new Promise<void>((resolve) => {
-              logoImgElement.onload = () => resolve();
-              logoImgElement.onerror = () => resolve(); 
-            });
-          } catch (imgError) {
-            console.error("Could not process logo for PDF, proceeding without it.", imgError);
-          }
-        }
-      }
-
       elementToRender.style.position = 'absolute';
       elementToRender.style.left = '-9999px';
       document.body.appendChild(elementToRender);
@@ -155,7 +98,6 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
         console.error("Error generating PDF:", err);
         alert("Ocurrió un error al generar el PDF. Revisa la consola para más detalles.");
     } finally {
-        document.head.removeChild(style);
         setIsExporting(false);
     }
   };
@@ -171,20 +113,20 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
 
   return (
     <>
-    <div className="bg-brand-surface rounded-lg shadow-2xl p-6 md:p-8 animate-fade-in">
+    <div className="bg-brand-light-beige text-brand-dark-charcoal rounded-lg shadow-2xl p-6 md:p-8 animate-fade-in">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-                <h3 className="text-2xl font-bold text-brand-text">Reportes y Finanzas</h3>
-                <p className="text-sm text-brand-text-secondary">Analiza el rendimiento de tu negocio mes a mes.</p>
+                <h3 className="text-2xl font-bold">Reportes y Finanzas</h3>
+                <p className="text-sm text-brand-dark-charcoal/80">Analiza el rendimiento de tu negocio mes a mes.</p>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
-                 <input type="month" value={`${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`} onChange={e => setReportDate(new Date(e.target.value))} className="bg-brand-bg border border-gray-600 rounded-md py-2 px-3 text-brand-text w-full"/>
-                 <button onClick={handleExportPDF} disabled={isExporting} className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-bg bg-brand-primary hover:bg-brand-secondary disabled:bg-gray-500 whitespace-nowrap">{isExporting ? '...' : 'Exportar'}</button>
+                 <input type="month" value={`${reportDate.getFullYear()}-${String(reportDate.getMonth() + 1).padStart(2, '0')}`} onChange={e => setReportDate(new Date(e.target.value))} className="bg-white border border-gray-300 rounded-md py-2 px-3 w-full"/>
+                 <button onClick={handleExportPDF} disabled={isExporting} className="py-2 px-4 rounded-md shadow-sm text-sm font-bold text-brand-light-beige bg-brand-dark-charcoal hover:bg-opacity-90 disabled:bg-gray-500 whitespace-nowrap">{isExporting ? '...' : 'Exportar'}</button>
             </div>
         </div>
         
-        <div className="p-4 md:p-8 bg-brand-surface">
-            <h4 className="text-xl font-bold text-center text-brand-primary mb-8 capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</h4>
+        <div className="p-4 md:p-8 bg-brand-light-beige">
+            <h4 className="text-xl font-bold text-center text-brand-dark-green mb-8 capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                 <StatCard title="Ingresos Totales" value={`₲${monthlyRevenue.toLocaleString('es-PY')}`} />
                 <StatCard title="Gastos Totales" value={`₲${monthlyExpenses.toLocaleString('es-PY')}`} />
@@ -193,40 +135,40 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <section>
-                    <h5 className="font-bold text-brand-text mb-4">Servicios Más Populares</h5>
+                    <h5 className="font-bold mb-4">Servicios Más Populares</h5>
                     {topServices.length > 0 ? (
-                        <ul className="space-y-2">{topServices.map(([name, count]) => <li key={name} className="flex justify-between bg-black/20 p-3 rounded-md text-sm"><span>{name}</span><span className="font-semibold">{count} {count > 1 ? 'veces' : 'vez'}</span></li>)}</ul>
-                    ) : <p className="text-sm text-brand-text-secondary">No hay servicios completados este mes.</p>}
+                        <ul className="space-y-2">{topServices.map(([name, count]) => <li key={name} className="flex justify-between bg-white p-3 rounded-md text-sm border"><span>{name}</span><span className="font-semibold">{count} {count > 1 ? 'veces' : 'vez'}</span></li>)}</ul>
+                    ) : <p className="text-sm text-brand-dark-charcoal/80">No hay servicios completados este mes.</p>}
                 </section>
                 <section>
-                    <h5 className="font-bold text-brand-text mb-4">Ingresos por Ventas de Productos</h5>
+                    <h5 className="font-bold mb-4">Ingresos por Ventas de Productos</h5>
                      <ul className="space-y-2">{productSales.map(sale => (
-                        <li key={sale.id} className="flex justify-between items-center bg-black/20 p-3 rounded-md text-sm">
-                            <div><span>{sale.description}</span><p className="text-xs text-brand-text-secondary">{new Date(sale.date).toLocaleDateString('es-ES')}</p></div>
-                            <div className="flex items-center gap-3"><span className="font-semibold text-green-400">+ ₲{Math.abs(sale.amount).toLocaleString('es-PY')}</span></div>
+                        <li key={sale.id} className="flex justify-between items-center bg-white p-3 rounded-md text-sm border">
+                            <div><span>{sale.description}</span><p className="text-xs text-brand-dark-charcoal/80">{new Date(sale.date).toLocaleDateString('es-ES')}</p></div>
+                            <div className="flex items-center gap-3"><span className="font-semibold text-green-600">+ ₲{Math.abs(sale.amount).toLocaleString('es-PY')}</span></div>
                         </li>
                     ))}</ul>
-                    {productSales.length === 0 && <p className="text-sm text-brand-text-secondary">No se registraron ventas de productos este mes.</p>}
+                    {productSales.length === 0 && <p className="text-sm text-brand-dark-charcoal/80">No se registraron ventas de productos este mes.</p>}
                 </section>
                 <section>
                     <div className="flex justify-between items-center mb-4">
-                        <h5 className="font-bold text-brand-text">Gastos del Mes</h5>
-                        <button onClick={() => setShowExpenseForm(!showExpenseForm)} className="text-sm py-1 px-3 bg-brand-primary/20 text-brand-primary rounded-md hover:bg-brand-primary/40">{showExpenseForm ? 'Cancelar' : '+ Añadir Gasto'}</button>
+                        <h5 className="font-bold">Gastos del Mes</h5>
+                        <button onClick={() => setShowExpenseForm(!showExpenseForm)} className="text-sm py-1 px-3 bg-brand-dark-charcoal/10 text-brand-dark-charcoal rounded-md hover:bg-brand-dark-charcoal/20">{showExpenseForm ? 'Cancelar' : '+ Añadir Gasto'}</button>
                     </div>
                     {showExpenseForm && (
-                        <form onSubmit={handleAddExpenseSubmit} className="flex flex-col sm:flex-row gap-2 mb-4 p-3 bg-black/20 rounded-md">
-                            <input type="text" placeholder="Descripción" value={expenseDescription} onChange={e => setExpenseDescription(e.target.value)} required className="flex-grow bg-brand-bg border border-gray-600 rounded-md text-sm p-2"/>
-                            <input type="number" placeholder="Monto" value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} required className="w-full sm:w-28 bg-brand-bg border border-gray-600 rounded-md text-sm p-2"/>
-                            <button type="submit" className="py-2 px-3 bg-brand-primary text-brand-bg font-bold rounded-md text-sm">OK</button>
+                        <form onSubmit={handleAddExpenseSubmit} className="flex flex-col sm:flex-row gap-2 mb-4 p-3 bg-white rounded-md border">
+                            <input type="text" placeholder="Descripción" value={expenseDescription} onChange={e => setExpenseDescription(e.target.value)} required className="flex-grow bg-transparent border border-gray-300 rounded-md text-sm p-2"/>
+                            <input type="number" placeholder="Monto" value={expenseAmount} onChange={e => setExpenseAmount(e.target.value)} required className="w-full sm:w-28 bg-transparent border border-gray-300 rounded-md text-sm p-2"/>
+                            <button type="submit" className="py-2 px-3 bg-brand-dark-charcoal text-brand-light-beige font-bold rounded-md text-sm">OK</button>
                         </form>
                     )}
                     <ul className="space-y-2">{realExpenses.map(expense => (
-                        <li key={expense.id} className="flex justify-between items-center bg-black/20 p-3 rounded-md text-sm">
-                            <div><span>{expense.description}</span><p className="text-xs text-brand-text-secondary">{new Date(expense.date).toLocaleDateString('es-ES')}</p></div>
-                            <div className="flex items-center gap-3"><span className="font-semibold">- ₲{Number(expense.amount).toLocaleString('es-PY')}</span><button onClick={() => onDeleteExpense(expense.id)} className="text-red-500 hover:text-red-400"><TrashIcon className="w-4 h-4" /></button></div>
+                        <li key={expense.id} className="flex justify-between items-center bg-white p-3 rounded-md text-sm border">
+                            <div><span>{expense.description}</span><p className="text-xs text-brand-dark-charcoal/80">{new Date(expense.date).toLocaleDateString('es-ES')}</p></div>
+                            <div className="flex items-center gap-3"><span className="font-semibold">- ₲{Number(expense.amount).toLocaleString('es-PY')}</span><button onClick={() => onDeleteExpense(expense.id)} className="text-red-500 hover:text-red-700"><TrashIcon className="w-4 h-4" /></button></div>
                         </li>
                     ))}</ul>
-                    {realExpenses.length === 0 && <p className="text-sm text-brand-text-secondary">No se registraron gastos este mes.</p>}
+                    {realExpenses.length === 0 && <p className="text-sm text-brand-dark-charcoal/80">No se registraron gastos este mes.</p>}
                 </section>
             </div>
         </div>
@@ -234,43 +176,43 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     
     {/* Hidden element for PDF export */}
     <div className="hidden">
-        <div ref={pdfReportRef} className="p-10 bg-brand-surface text-brand-text" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Inter' }}>
-            <header className="flex justify-between items-center mb-10 border-b-2 border-brand-primary pb-4">
+        <div ref={pdfReportRef} className="p-10 bg-white text-gray-800" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Poppins, sans-serif' }}>
+            <header className="flex justify-between items-center mb-10 border-b-2 border-brand-dark-green pb-4">
                 {barberShop.logo_url && <img src={barberShop.logo_url} alt="logo" style={{width: '80px', height: '80px', borderRadius: '8px'}} />}
                 <div className="text-right">
-                    <h1 className="text-3xl font-bold text-brand-primary" style={{ fontFamily: "'Playfair Display', serif" }}>Reporte Mensual</h1>
-                    <p className="text-brand-text-secondary">{barberShop.name}</p>
-                    <p className="text-brand-text-secondary text-lg capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</p>
+                    <h1 className="text-3xl font-bold text-brand-dark-green" style={{ fontFamily: "'Roboto Slab', serif" }}>Reporte Mensual</h1>
+                    <p className="text-gray-600">{barberShop.name}</p>
+                    <p className="text-gray-600 text-lg capitalize">{reportDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })}</p>
                 </div>
             </header>
             
             <section className="grid grid-cols-3 gap-6 mb-10 text-center">
-                 <div><h3 className="text-sm font-semibold uppercase text-brand-text-secondary">Ingresos</h3><p className="text-2xl font-bold text-green-400">₲{monthlyRevenue.toLocaleString('es-PY')}</p></div>
-                 <div><h3 className="text-sm font-semibold uppercase text-brand-text-secondary">Gastos</h3><p className="text-2xl font-bold text-red-400">₲{monthlyExpenses.toLocaleString('es-PY')}</p></div>
-                 <div><h3 className="text-sm font-semibold uppercase text-brand-text-secondary">Ganancia Neta</h3><p className="text-2xl font-bold text-brand-primary">₲{monthlyProfit.toLocaleString('es-PY')}</p></div>
+                 <div><h3 className="text-sm font-semibold uppercase text-gray-500">Ingresos</h3><p className="text-2xl font-bold text-green-600">₲{monthlyRevenue.toLocaleString('es-PY')}</p></div>
+                 <div><h3 className="text-sm font-semibold uppercase text-gray-500">Gastos</h3><p className="text-2xl font-bold text-red-600">₲{monthlyExpenses.toLocaleString('es-PY')}</p></div>
+                 <div><h3 className="text-sm font-semibold uppercase text-gray-500">Ganancia Neta</h3><p className="text-2xl font-bold text-brand-dark-green">₲{monthlyProfit.toLocaleString('es-PY')}</p></div>
             </section>
             
             <section className="mb-10">
-                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Servicios)</h2>
+                <h2 className="text-xl font-bold text-brand-dark-green mb-4">Desglose de Ingresos (Servicios)</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Cliente</th><th className="p-3 text-xs uppercase">Servicios</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
-                    <tbody>{filteredBookings.map(b => <tr key={b.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(b.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{b.customer.name}</td><td className="p-3 text-sm">{getServiceNames(b.service)}</td><td className="p-3 text-sm text-right">₲{getTotalPrice(b.service).toLocaleString('es-PY')}</td></tr>)}</tbody>
+                    <thead className="bg-gray-100"><tr className="text-left"><th className="p-3 text-xs uppercase text-gray-600">Fecha</th><th className="p-3 text-xs uppercase text-gray-600">Cliente</th><th className="p-3 text-xs uppercase text-gray-600">Servicios</th><th className="p-3 text-xs uppercase text-right text-gray-600">Monto</th></tr></thead>
+                    <tbody>{filteredBookings.map(b => <tr key={b.id} className="border-b"><td className="p-3 text-sm">{new Date(b.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{b.customer.name}</td><td className="p-3 text-sm">{getServiceNames(b.service)}</td><td className="p-3 text-sm text-right">₲{getTotalPrice(b.service).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
             
             <section className="mb-10">
-                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Productos)</h2>
+                <h2 className="text-xl font-bold text-brand-dark-green mb-4">Desglose de Ingresos (Productos)</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
-                    <tbody>{productSales.map(s => <tr key={s.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(s.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{s.description}</td><td className="p-3 text-sm text-right">₲{Math.abs(s.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
+                    <thead className="bg-gray-100"><tr className="text-left"><th className="p-3 text-xs uppercase text-gray-600">Fecha</th><th className="p-3 text-xs uppercase text-gray-600">Descripción</th><th className="p-3 text-xs uppercase text-right text-gray-600">Monto</th></tr></thead>
+                    <tbody>{productSales.map(s => <tr key={s.id} className="border-b"><td className="p-3 text-sm">{new Date(s.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{s.description}</td><td className="p-3 text-sm text-right">₲{Math.abs(s.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
 
              <section className="mb-10">
-                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Gastos</h2>
+                <h2 className="text-xl font-bold text-brand-dark-green mb-4">Desglose de Gastos</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                    <thead className="bg-black/20"><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
-                    <tbody>{realExpenses.map(e => <tr key={e.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(e.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{e.description}</td><td className="p-3 text-sm text-right">- ₲{Number(e.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
+                    <thead className="bg-gray-100"><tr className="text-left"><th className="p-3 text-xs uppercase text-gray-600">Fecha</th><th className="p-3 text-xs uppercase text-gray-600">Descripción</th><th className="p-3 text-xs uppercase text-right text-gray-600">Monto</th></tr></thead>
+                    <tbody>{realExpenses.map(e => <tr key={e.id} className="border-b"><td className="p-3 text-sm">{new Date(e.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{e.description}</td><td className="p-3 text-sm text-right">- ₲{Number(e.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
 
