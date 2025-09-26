@@ -80,6 +80,23 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     try {
       const elementToRender = reportElement.cloneNode(true) as HTMLDivElement;
       
+      // --- PDF STYLING OVERRIDES FOR LIGHT THEME ---
+      elementToRender.style.backgroundColor = 'white';
+      elementToRender.style.color = '#1f2937'; // Dark gray text
+
+      elementToRender.querySelectorAll<HTMLElement>('h1, h2, .text-brand-primary').forEach(el => { el.style.color = '#000000'; });
+      elementToRender.querySelectorAll<HTMLElement>('.text-brand-text-secondary').forEach(el => { el.style.color = '#4b5563'; });
+      elementToRender.querySelectorAll<HTMLElement>('.text-green-400').forEach(el => { el.style.color = '#166534'; });
+      elementToRender.querySelectorAll<HTMLElement>('.text-red-400').forEach(el => { el.style.color = '#991b1b'; });
+      elementToRender.querySelectorAll<HTMLElement>('.border-gray-700').forEach(el => { el.style.borderColor = '#e5e7eb'; });
+      
+      const tableHeads = elementToRender.querySelectorAll('thead');
+      tableHeads.forEach((thead: HTMLElement) => {
+          thead.style.backgroundColor = '#F3F4F6'; // Light gray background
+          thead.querySelectorAll('th').forEach(th => { th.style.color = '#374151'; });
+      });
+      // --- END OF STYLING OVERRIDES ---
+
       if (barberShop.logo_url) {
         const logoImgElement = elementToRender.querySelector('img');
         if (logoImgElement) {
@@ -87,20 +104,17 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
             const response = await fetch(barberShop.logo_url);
             if (!response.ok) throw new Error('Logo image could not be fetched.');
             const blob = await response.blob();
-
             const dataUrl = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             });
-            
             logoImgElement.src = dataUrl;
             await new Promise<void>((resolve) => {
               logoImgElement.onload = () => resolve();
               logoImgElement.onerror = () => resolve(); 
             });
-
           } catch (imgError) {
             console.error("Could not process logo for PDF, proceeding without it.", imgError);
           }
@@ -112,7 +126,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
       document.body.appendChild(elementToRender);
 
       const canvas = await html2canvas(elementToRender, {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#FFFFFF',
         scale: 2,
       });
 
