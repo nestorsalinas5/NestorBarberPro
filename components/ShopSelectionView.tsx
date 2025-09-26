@@ -13,13 +13,12 @@ export const ShopSelectionView: React.FC<ShopSelectionViewProps> = ({ barberShop
     <div className="animate-fade-in">
       <div className="text-center mb-12">
         <h2 
-            className="text-3xl font-bold text-brand-primary"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-3xl font-bold text-brand-light-beige font-serif"
         >
-            Nuestras Barberías
+            - BARBER SHOP -
         </h2>
-        <p className="mt-2 text-brand-text-secondary">
-            Selecciona una para ver sus servicios y agendar una cita.
+        <p className="mt-2 text-brand-light-beige/80 tracking-widest text-sm uppercase">
+            Booking Apps
         </p>
       </div>
 
@@ -30,9 +29,9 @@ export const ShopSelectionView: React.FC<ShopSelectionViewProps> = ({ barberShop
           ))}
         </div>
       ) : (
-        <div className="text-center p-16 bg-brand-surface rounded-lg">
-            <h2 className="text-2xl font-bold text-brand-primary">No hay barberías disponibles</h2>
-            <p className="text-brand-text-secondary mt-2">Por favor, vuelva a intentarlo más tarde.</p>
+        <div className="text-center p-16 bg-brand-light-beige rounded-lg">
+            <h2 className="text-2xl font-bold text-brand-dark-charcoal">No hay barberías disponibles</h2>
+            <p className="text-brand-dark-charcoal/80 mt-2">Por favor, vuelva a intentarlo más tarde.</p>
         </div>
       )}
 
