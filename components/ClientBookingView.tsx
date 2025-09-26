@@ -20,13 +20,13 @@ const PromotionsBanner: React.FC<{ promotions: BarberShop['promotions'] }> = ({ 
   if (!promotions || promotions.length === 0) return null;
 
   return (
-    <div className="mb-6 p-4 bg-brand-primary/10 border border-brand-primary/30 rounded-lg animate-fade-in">
-      <h3 className="font-bold text-brand-primary mb-2">¡Promociones Especiales!</h3>
+    <div className="mb-6 p-4 bg-brand-dark-charcoal/5 border border-brand-dark-charcoal/10 rounded-lg animate-fade-in">
+      <h3 className="font-bold text-brand-dark-charcoal mb-2">¡Promociones Especiales!</h3>
       <ul className="space-y-2">
         {promotions.map(promo => (
           <li key={promo.id}>
-            <p className="font-semibold text-brand-text">{promo.title}</p>
-            <p className="text-sm text-brand-text-secondary">{promo.description}</p>
+            <p className="font-semibold text-brand-dark-charcoal">{promo.title}</p>
+            <p className="text-sm text-brand-dark-charcoal/80">{promo.description}</p>
           </li>
         ))}
       </ul>
@@ -87,18 +87,16 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
       <div className="mb-4">
         <button 
             onClick={onReturnToShopSelection}
-            className="text-sm text-brand-primary hover:text-brand-secondary transition-colors font-semibold"
+            className="text-sm text-brand-light-beige hover:text-white transition-colors font-semibold"
         >
             &larr; Volver a la lista de barberías
         </button>
       </div>
-
-      <PromotionsBanner promotions={barberShop.promotions} />
-
-      <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden">
+      
+      <div className="bg-brand-light-beige rounded-lg shadow-2xl overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3">
           
-           <aside className="lg:col-span-1 p-6 bg-black/20 lg:border-r lg:border-gray-700/50">
+           <aside className="lg:col-span-1 p-6 bg-brand-dark-charcoal/5 lg:border-r lg:border-brand-dark-charcoal/10">
             <BookingSummary 
               services={selectedServices}
               date={selectedDate}
@@ -107,7 +105,8 @@ export const ClientBookingView: React.FC<ClientBookingViewProps> = ({ barberShop
           </aside>
           
           <div className="lg:col-span-2 p-6">
-            <h2 className="text-2xl font-bold text-brand-primary mb-6">{getStepTitle()}</h2>
+            <PromotionsBanner promotions={barberShop.promotions} />
+            <h2 className="text-2xl font-bold text-brand-dark-charcoal mb-6">{getStepTitle()}</h2>
             {getStepComponent()}
           </div>
           
