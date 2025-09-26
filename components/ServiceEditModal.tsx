@@ -58,14 +58,14 @@ export const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in" onClick={onClose}>
-      <div className="bg-brand-surface rounded-lg shadow-2xl p-8 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold text-brand-primary mb-4">
+      <div className="bg-brand-light-beige text-brand-dark-charcoal rounded-lg shadow-2xl p-8 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-2xl font-bold text-brand-dark-charcoal mb-4">
           {service ? 'Editar Servicio' : 'Añadir Nuevo Servicio'}
         </h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div>
-              <label htmlFor="service-name" className="block text-sm font-medium text-brand-text-secondary">
+              <label htmlFor="service-name" className="block text-sm font-medium text-brand-dark-charcoal/80">
                 Nombre del Servicio
               </label>
               <input
@@ -73,13 +73,13 @@ export const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onCl
                 id="service-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 block w-full bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="mt-1 block w-full bg-transparent border-b-2 border-brand-dark-charcoal/20 rounded-none shadow-sm py-2 px-1 focus:outline-none focus:ring-transparent focus:border-brand-dark-charcoal"
                 autoFocus
               />
-              {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
             <div>
-              <label htmlFor="service-duration" className="block text-sm font-medium text-brand-text-secondary">
+              <label htmlFor="service-duration" className="block text-sm font-medium text-brand-dark-charcoal/80">
                 Duración (en minutos)
               </label>
               <input
@@ -87,12 +87,12 @@ export const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onCl
                 id="service-duration"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="mt-1 block w-full bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="mt-1 block w-full bg-transparent border-b-2 border-brand-dark-charcoal/20 rounded-none shadow-sm py-2 px-1 focus:outline-none focus:ring-transparent focus:border-brand-dark-charcoal"
               />
-              {errors.duration && <p className="mt-1 text-sm text-red-400">{errors.duration}</p>}
+              {errors.duration && <p className="mt-1 text-sm text-red-600">{errors.duration}</p>}
             </div>
             <div>
-              <label htmlFor="service-price" className="block text-sm font-medium text-brand-text-secondary">
+              <label htmlFor="service-price" className="block text-sm font-medium text-brand-dark-charcoal/80">
                 Precio (en ₲)
               </label>
               <input
@@ -100,22 +100,22 @@ export const ServiceEditModal: React.FC<ServiceEditModalProps> = ({ isOpen, onCl
                 id="service-price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="mt-1 block w-full bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                className="mt-1 block w-full bg-transparent border-b-2 border-brand-dark-charcoal/20 rounded-none shadow-sm py-2 px-1 focus:outline-none focus:ring-transparent focus:border-brand-dark-charcoal"
               />
-              {errors.price && <p className="mt-1 text-sm text-red-400">{errors.price}</p>}
+              {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
             </div>
           </div>
           <div className="mt-6 flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-brand-text hover:bg-brand-bg"
+              className="py-2 px-4 border border-brand-dark-charcoal/30 rounded-md shadow-sm text-sm font-medium hover:bg-brand-dark-charcoal/10"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-bg bg-brand-primary hover:bg-brand-secondary"
+              className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-light-beige bg-brand-dark-charcoal hover:bg-opacity-90"
             >
               Guardar Cambios
             </button>
