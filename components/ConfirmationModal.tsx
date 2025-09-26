@@ -76,34 +76,32 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-brand-light-beige rounded-lg shadow-2xl p-8 max-w-md w-full text-center transform transition-all scale-100">
-        <CheckCircleIcon className="w-16 h-16 text-brand-dark-green mx-auto mb-4"/>
-        <h2 className="text-2xl font-bold text-brand-dark-charcoal mb-2">¡Reserva Confirmada!</h2>
+        <CheckCircleIcon className="w-16 h-16 text-brand-gold mx-auto mb-4"/>
+        <h2 className="text-2xl font-bold text-brand-dark-charcoal mb-2 font-serif">¡Reserva Confirmada!</h2>
         <p className="text-brand-dark-charcoal/80 mb-6">Tu cita está agendada. Hemos enviado los detalles a tu correo.</p>
         
-        <div className="text-left bg-brand-dark-charcoal/5 p-4 rounded-lg mb-6">
+        <div className="text-left bg-brand-dark-charcoal/5 p-4 rounded-lg mb-6 border border-brand-dark-charcoal/10">
           <div className="space-y-2">
             <div>
-              <strong className="text-brand-dark-charcoal/80 w-20 inline-block">Servicios:</strong> 
-              <ul className="inline-block list-disc list-inside ml-2">
-                {services.map(s => <li key={s.id}>{s.name}</li>)}
-              </ul>
+              <strong className="text-brand-dark-charcoal/80 w-24 inline-block">Servicios:</strong> 
+              <span className="font-semibold">{services.map(s => s.name).join(', ')}</span>
             </div>
-            <p><strong className="text-brand-dark-charcoal/80 w-20 inline-block">Fecha:</strong> {capitalizedDate}</p>
-            <p><strong className="text-brand-dark-charcoal/80 w-20 inline-block">Hora:</strong> {timeSlot?.time}</p>
+             <p><strong className="text-brand-dark-charcoal/80 w-24 inline-block">Fecha:</strong> <span className="font-semibold">{capitalizedDate}</span></p>
+            <p><strong className="text-brand-dark-charcoal/80 w-24 inline-block">Hora:</strong> <span className="font-semibold">{timeSlot?.time}</span></p>
           </div>
         </div>
 
         <div className="space-y-4">
             <button
               onClick={handleDownloadICS}
-              className="w-full flex items-center justify-center gap-2 text-lg font-semibold bg-brand-dark-charcoal/10 text-brand-dark-charcoal hover:bg-brand-dark-charcoal/20 transition-colors py-3 px-4 rounded-lg"
+              className="w-full flex items-center justify-center gap-2 text-base font-bold bg-brand-gold text-brand-dark-charcoal hover:bg-brand-gold/90 transition-colors py-3 px-4 rounded-lg"
             >
               <CalendarPlusIcon className="w-6 h-6" />
               Añadir a mi Calendario
             </button>
             <button
               onClick={onClose}
-              className="w-full py-3 px-4 border-2 border-brand-dark-charcoal rounded-lg shadow-sm text-sm font-medium text-brand-dark-charcoal hover:bg-brand-dark-charcoal hover:text-brand-light-beige transition-colors"
+              className="w-full py-3 px-4 text-sm font-medium text-brand-dark-charcoal/80 hover:text-brand-dark-charcoal transition-colors"
             >
               Agendar otra Cita
             </button>
