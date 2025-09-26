@@ -22,26 +22,36 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
   const [isExporting, setIsExporting] = useState(false);
   const pdfReportRef = useRef<HTMLDivElement>(null);
 
-  const { monthlyRevenue, monthlyExpenses, monthlyProfit, topServices, filteredBookings, filteredExpenses } = useMemo(() => {
+  const { monthlyRevenue, monthlyExpenses, monthlyProfit, topServices, filteredBookings, productSales, realExpenses } = useMemo(() => {
     const year = reportDate.getFullYear();
     const month = reportDate.getMonth();
+    
     const filteredBookings = bookings.filter(b => {
       const bDate = new Date(b.date);
       return b.status === 'Completada' && bDate.getFullYear() === year && bDate.getMonth() === month;
     });
-    const filteredExpenses = expenses.filter(e => {
+
+    const productSales = expenses.filter(e => {
       const eDate = new Date(e.date);
-      return eDate.getFullYear() === year && eDate.getMonth() === month;
+      return e.category === 'Venta de Producto' && eDate.getFullYear() === year && eDate.getMonth() === month;
     });
 
-    const monthlyRevenue = filteredBookings.reduce((acc, booking) => {
+    const realExpenses = expenses.filter(e => {
+      const eDate = new Date(e.date);
+      return e.category !== 'Venta de Producto' && eDate.getFullYear() === year && eDate.getMonth() === month;
+    });
+
+    const bookingRevenue = filteredBookings.reduce((acc, booking) => {
         const services = Array.isArray(booking.service) ? booking.service : [booking.service];
         return acc + services.reduce((sAcc, s) => sAcc + s.price, 0);
     }, 0);
-
-    const monthlyExpenses = filteredExpenses.reduce((acc, expense) => acc + Number(expense.amount), 0);
-    const serviceCounts: { [key: string]: number } = {};
     
+    const productRevenue = productSales.reduce((acc, sale) => acc + Math.abs(sale.amount), 0);
+    const monthlyRevenue = bookingRevenue + productRevenue;
+
+    const monthlyExpenses = realExpenses.reduce((acc, expense) => acc + Number(expense.amount), 0);
+    
+    const serviceCounts: { [key: string]: number } = {};
     filteredBookings.forEach(booking => {
         const services = Array.isArray(booking.service) ? booking.service : [booking.service];
         services.forEach(s => { serviceCounts[s.name] = (serviceCounts[s.name] || 0) + 1; });
@@ -49,7 +59,7 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     
     const topServices = Object.entries(serviceCounts).sort(([, a], [, b]) => b - a).slice(0, 5);
 
-    return { monthlyRevenue, monthlyExpenses, monthlyProfit: monthlyRevenue - monthlyExpenses, topServices, filteredBookings, filteredExpenses };
+    return { monthlyRevenue, monthlyExpenses, monthlyProfit: monthlyRevenue - monthlyExpenses, topServices, filteredBookings, productSales, realExpenses };
   }, [reportDate, bookings, expenses]);
 
   const handleAddExpenseSubmit = async (e: React.FormEvent) => {
@@ -68,20 +78,16 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
     setIsExporting(true);
 
     try {
-      // To handle cross-origin images robustly, we clone the element,
-      // fetch the logo, convert it to a Data URI, and then capture.
       const elementToRender = reportElement.cloneNode(true) as HTMLDivElement;
       
       if (barberShop.logo_url) {
         const logoImgElement = elementToRender.querySelector('img');
         if (logoImgElement) {
           try {
-            // Fetch the image
             const response = await fetch(barberShop.logo_url);
             if (!response.ok) throw new Error('Logo image could not be fetched.');
             const blob = await response.blob();
 
-            // Convert blob to Data URI
             const dataUrl = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
@@ -89,11 +95,10 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
               reader.readAsDataURL(blob);
             });
             
-            // Set the new source and wait for it to load
             logoImgElement.src = dataUrl;
             await new Promise<void>((resolve) => {
               logoImgElement.onload = () => resolve();
-              logoImgElement.onerror = () => resolve(); // Resolve on error too to avoid hanging
+              logoImgElement.onerror = () => resolve(); 
             });
 
           } catch (imgError) {
@@ -102,7 +107,6 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
         }
       }
 
-      // Temporarily append the clone to the DOM to ensure styles are computed correctly.
       elementToRender.style.position = 'absolute';
       elementToRender.style.left = '-9999px';
       document.body.appendChild(elementToRender);
@@ -112,7 +116,6 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
         scale: 2,
       });
 
-      // Clean up the cloned node from the DOM
       document.body.removeChild(elementToRender);
       
       const imgData = canvas.toDataURL('image/png');
@@ -169,6 +172,16 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
                     ) : <p className="text-sm text-brand-text-secondary">No hay servicios completados este mes.</p>}
                 </section>
                 <section>
+                    <h5 className="font-bold text-brand-text mb-4">Ingresos por Ventas de Productos</h5>
+                     <ul className="space-y-2">{productSales.map(sale => (
+                        <li key={sale.id} className="flex justify-between items-center bg-black/20 p-3 rounded-md text-sm">
+                            <div><span>{sale.description}</span><p className="text-xs text-brand-text-secondary">{new Date(sale.date).toLocaleDateString('es-ES')}</p></div>
+                            <div className="flex items-center gap-3"><span className="font-semibold text-green-400">+ ₲{Math.abs(sale.amount).toLocaleString('es-PY')}</span></div>
+                        </li>
+                    ))}</ul>
+                    {productSales.length === 0 && <p className="text-sm text-brand-text-secondary">No se registraron ventas de productos este mes.</p>}
+                </section>
+                <section>
                     <div className="flex justify-between items-center mb-4">
                         <h5 className="font-bold text-brand-text">Gastos del Mes</h5>
                         <button onClick={() => setShowExpenseForm(!showExpenseForm)} className="text-sm py-1 px-3 bg-brand-primary/20 text-brand-primary rounded-md hover:bg-brand-primary/40">{showExpenseForm ? 'Cancelar' : '+ Añadir Gasto'}</button>
@@ -180,13 +193,13 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
                             <button type="submit" className="py-2 px-3 bg-brand-primary text-brand-bg font-bold rounded-md text-sm">OK</button>
                         </form>
                     )}
-                    <ul className="space-y-2">{filteredExpenses.map(expense => (
+                    <ul className="space-y-2">{realExpenses.map(expense => (
                         <li key={expense.id} className="flex justify-between items-center bg-black/20 p-3 rounded-md text-sm">
                             <div><span>{expense.description}</span><p className="text-xs text-brand-text-secondary">{new Date(expense.date).toLocaleDateString('es-ES')}</p></div>
                             <div className="flex items-center gap-3"><span className="font-semibold">- ₲{Number(expense.amount).toLocaleString('es-PY')}</span><button onClick={() => onDeleteExpense(expense.id)} className="text-red-500 hover:text-red-400"><TrashIcon className="w-4 h-4" /></button></div>
                         </li>
                     ))}</ul>
-                    {filteredExpenses.length === 0 && <p className="text-sm text-brand-text-secondary">No se registraron gastos este mes.</p>}
+                    {realExpenses.length === 0 && <p className="text-sm text-brand-text-secondary">No se registraron gastos este mes.</p>}
                 </section>
             </div>
         </div>
@@ -211,18 +224,26 @@ export const ReportingView: React.FC<ReportingViewProps> = ({ barberShop, bookin
             </section>
             
             <section className="mb-10">
-                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos</h2>
+                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Servicios)</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
                     <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Cliente</th><th className="p-3 text-xs uppercase">Servicios</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
                     <tbody>{filteredBookings.map(b => <tr key={b.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(b.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{b.customer.name}</td><td className="p-3 text-sm">{getServiceNames(b.service)}</td><td className="p-3 text-sm text-right">₲{getTotalPrice(b.service).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
             
+            <section className="mb-10">
+                <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Ingresos (Productos)</h2>
+                <table style={{width: '100%', borderCollapse: 'collapse'}}>
+                    <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
+                    <tbody>{productSales.map(s => <tr key={s.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(s.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{s.description}</td><td className="p-3 text-sm text-right">₲{Math.abs(s.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
+                </table>
+            </section>
+
              <section className="mb-10">
                 <h2 className="text-xl font-bold text-brand-primary mb-4">Desglose de Gastos</h2>
                 <table style={{width: '100%', borderCollapse: 'collapse'}}>
                     <thead style={{backgroundColor: '#121212'}}><tr className="text-left"><th className="p-3 text-xs uppercase">Fecha</th><th className="p-3 text-xs uppercase">Descripción</th><th className="p-3 text-xs uppercase text-right">Monto</th></tr></thead>
-                    <tbody>{filteredExpenses.map(e => <tr key={e.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(e.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{e.description}</td><td className="p-3 text-sm text-right">- ₲{Number(e.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
+                    <tbody>{realExpenses.map(e => <tr key={e.id} className="border-b border-gray-700"><td className="p-3 text-sm">{new Date(e.date).toLocaleDateString('es-ES')}</td><td className="p-3 text-sm">{e.description}</td><td className="p-3 text-sm text-right">- ₲{Number(e.amount).toLocaleString('es-PY')}</td></tr>)}</tbody>
                 </table>
             </section>
 
