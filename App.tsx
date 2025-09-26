@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useCallback } from 'react';
 import type { Booking, BarberShop, Service, Profile, BarberShopWithUser, Client, Expense, ScheduleConfig, Product, Promotion } from './types';
 import { BarberShopHeader } from './components/BarberShopHeader';
@@ -135,21 +133,6 @@ function App() {
   const loggedInBarberShop = barberShops.find(s => s.id === profile?.barber_shop_id);
   const clientSelectedShop = barberShops.find(s => s.id === selectedShopId);
 
-  // THEME MANAGEMENT
-  useEffect(() => {
-    const activeShop = clientSelectedShop || loggedInBarberShop;
-    const root = document.documentElement;
-    if (activeShop?.color_primario) {
-      root.style.setProperty('--color-primary', activeShop.color_primario);
-      root.style.setProperty('--color-secondary', activeShop.color_secundario || activeShop.color_primario);
-    } else {
-      // Reset to default if no shop is active or if the shop has no custom color
-      root.style.setProperty('--color-primary', '#D4AF37');
-      root.style.setProperty('--color-secondary', '#F0C44D');
-    }
-  }, [clientSelectedShop, loggedInBarberShop]);
-
-
   const handleSelectShop = (shopId: string) => setSelectedShopId(shopId);
   const handleReturnToShopSelection = () => setSelectedShopId(null);
   const handleLogout = async () => { await authService.signOut(); setView('booking'); };
@@ -243,18 +226,6 @@ function App() {
     } else {
         alert('Barbería eliminada correctamente.');
         fetchAdminData();
-    }
-  };
-
-  const handleUpdateBarberShopTheme = async (shopId: string, theme: { color_primario: string; color_secundario: string }) => {
-    const { data, error } = await supabase.from('barber_shops').update(theme).eq('id', shopId).select().single();
-    if (error) {
-        console.error('Error updating theme:', error);
-        alert('Error al actualizar el tema.');
-    } else if (data) {
-        const updatedShopData = data as BarberShop;
-        setAdminBarberShops(prev => prev.map(s => s.id === shopId ? { ...s, ...updatedShopData } : s));
-        setBarberShops(prev => prev.map(s => s.id === shopId ? updatedShopData : s));
     }
   };
 
@@ -364,7 +335,7 @@ function App() {
   // --- RENDER LOGIC ---
   const renderContent = () => {
     if (isLoading) {
-      return <div className="text-center p-8 text-brand-text-secondary">Cargando plataforma...</div>;
+      return <div className="text-center p-8 text-brand-light-beige">Cargando plataforma...</div>;
     }
 
     if (profile?.role === 'Admin') {
@@ -375,7 +346,6 @@ function App() {
         onUpdateBarberShopStatus={handleUpdateBarberShopStatus}
         onUpdateBarberShopLicense={handleUpdateBarberShopLicense}
         onDeleteBarberShop={handleDeleteBarberShop}
-        onUpdateBarberShopTheme={handleUpdateBarberShopTheme}
       />;
     }
 
@@ -397,7 +367,6 @@ function App() {
         onUpdateProduct={handleUpdateProduct}
         onDeleteProduct={handleDeleteProduct}
         onUpdatePromotions={handleUpdatePromotions}
-        onUpdateTheme={handleUpdateBarberShopTheme}
         onSellProduct={handleProductSale}
       />;
     }
@@ -421,7 +390,7 @@ function App() {
   const activeShop = clientSelectedShop || loggedInBarberShop;
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <BarberShopHeader 
           user={session?.user || null}
