@@ -44,16 +44,16 @@ export const ProductSaleModal: React.FC<ProductSaleModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in" onClick={onClose}>
-      <div className="bg-brand-surface rounded-lg shadow-2xl p-8 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold text-brand-primary mb-4">Registrar Venta</h2>
+      <div className="bg-brand-light-beige text-brand-dark-charcoal rounded-lg shadow-2xl p-8 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-2xl font-bold mb-4">Registrar Venta</h2>
         <div className="space-y-4">
             <div>
-                <p className="text-sm text-brand-text-secondary">Producto</p>
-                <p className="font-semibold text-lg text-brand-text">{product.name}</p>
-                <p className="text-sm text-brand-text-secondary">Stock disponible: {product.stock_quantity}</p>
+                <p className="text-sm text-brand-dark-charcoal/80">Producto</p>
+                <p className="font-semibold text-lg">{product.name}</p>
+                <p className="text-sm text-brand-dark-charcoal/80">Stock disponible: {product.stock_quantity}</p>
             </div>
             <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-brand-text-secondary">Cantidad a vender</label>
+                <label htmlFor="quantity" className="block text-sm font-medium text-brand-dark-charcoal/80">Cantidad a vender</label>
                 <input
                     type="number"
                     id="quantity"
@@ -61,26 +61,26 @@ export const ProductSaleModal: React.FC<ProductSaleModalProps> = ({ isOpen, onCl
                     onChange={handleQuantityChange}
                     min="1"
                     max={product.stock_quantity}
-                    className="mt-1 block w-full bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                    className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-dark-green focus:border-brand-dark-green"
                     autoFocus
                 />
             </div>
-            <div className="flex justify-between items-center pt-4 border-t border-gray-700">
-                <span className="text-lg font-bold text-brand-text-secondary">Total</span>
-                <span className="text-2xl font-bold text-brand-primary">
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                <span className="text-lg font-bold text-brand-dark-charcoal/80">Total</span>
+                <span className="text-2xl font-bold text-brand-dark-green">
                     ₲{totalPrice.toLocaleString('es-PY')}
                 </span>
             </div>
         </div>
         <div className="mt-6 flex justify-end gap-4">
-          <button type="button" onClick={onClose} className="py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-brand-text hover:bg-brand-bg">
+          <button type="button" onClick={onClose} className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium hover:bg-gray-100">
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             disabled={quantity <= 0 || quantity > product.stock_quantity || isSubmitting}
-            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-bg bg-brand-primary hover:bg-brand-secondary disabled:bg-gray-500"
+            className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-brand-light-beige bg-brand-dark-charcoal hover:bg-opacity-90 disabled:bg-gray-400"
           >
             {isSubmitting ? 'Confirmando...' : 'Confirmar Venta'}
           </button>
