@@ -35,13 +35,6 @@ const PromotionsBanner: React.FC<{ promotions: BarberShop['promotions'] }> = ({ 
 };
 
 const StepIndicator: React.FC<{ currentStep: number }> = ({ currentStep }) => {
-    const steps = [
-        { number: 1, title: 'Servicios' },
-        { number: 2, title: 'Fecha y Hora' },
-        { number: 3, title: 'Fecha y Hora' }, // Merged step
-        { number: 4, title: 'Confirmar' }
-    ];
-    
     // Unify steps 2 and 3 for the indicator
     const displaySteps = [
         { number: 1, title: 'Servicios' },
