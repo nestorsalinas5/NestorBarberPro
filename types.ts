@@ -1,5 +1,3 @@
-
-
 import type { User as AuthUser } from '@supabase/supabase-js';
 
 export type { AuthUser };
@@ -72,6 +70,7 @@ export interface BarberShop {
   license_expires_at: string | null;
   logo_url?: string | null;
   promotions?: Promotion[] | null;
+  // FIX: Add theme color properties to the BarberShop type.
   color_primario?: string | null;
   color_secundario?: string | null;
 }
@@ -83,7 +82,7 @@ export interface BarberShopWithUser extends BarberShop {
 
 // NEW: Client table matches public.clients
 export interface Client {
-  id: string;
+  id:string;
   barber_shop_id: string;
   name: string;
   email: string;
