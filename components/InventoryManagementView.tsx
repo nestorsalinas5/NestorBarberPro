@@ -53,18 +53,18 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
   };
 
   const getStockColor = (stock: number) => {
-    if (stock <= 5) return 'text-red-400';
-    if (stock <= 15) return 'text-yellow-400';
-    return 'text-green-400';
+    if (stock <= 5) return 'text-red-600';
+    if (stock <= 15) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
   return (
     <>
-    <div className="bg-brand-surface rounded-lg shadow-2xl overflow-hidden p-6 md:p-8 animate-fade-in">
+    <div className="bg-brand-light-beige text-brand-dark-charcoal rounded-lg shadow-2xl overflow-hidden p-6 md:p-8 animate-fade-in">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
-                <h3 className="text-2xl font-bold text-brand-text">Gestión de Inventario</h3>
-                <p className="text-sm text-brand-text-secondary">Controla el stock de los productos que vendes.</p>
+                <h3 className="text-2xl font-bold">Gestión de Inventario</h3>
+                <p className="text-sm text-brand-dark-charcoal/80">Controla el stock de los productos que vendes.</p>
             </div>
             <div className="flex items-center gap-4 w-full md:w-auto">
                 <input
@@ -72,35 +72,35 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
                     placeholder="Buscar producto..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full md:max-w-xs bg-brand-bg border border-gray-600 rounded-md shadow-sm py-2 px-3 text-brand-text focus:outline-none focus:ring-brand-primary focus:border-brand-primary"
+                    className="w-full md:max-w-xs bg-white border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-dark-green focus:border-brand-dark-green"
                 />
-                 <button onClick={openEditModalForNew} className="bg-brand-primary text-brand-bg font-bold py-2 px-4 rounded-lg hover:bg-brand-secondary transition-colors whitespace-nowrap">+ Añadir</button>
+                 <button onClick={openEditModalForNew} className="bg-brand-dark-charcoal text-brand-light-beige font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors whitespace-nowrap">+ Añadir</button>
             </div>
         </div>
         
         <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-black/20">
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                     <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Producto</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Precio</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Stock</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-brand-text-secondary uppercase tracking-wider">Acciones</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Producto</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Precio</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Stock</th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-brand-dark-charcoal/70 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="bg-white divide-y divide-gray-200">
                     {filteredProducts.map(product => (
-                        <tr key={product.id} className="hover:bg-black/20 transition-colors">
+                        <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-semibold text-brand-text">{product.name}</div>
-                                <div className="text-xs text-brand-text-secondary max-w-xs truncate">{product.description}</div>
+                                <div className="text-sm font-semibold">{product.name}</div>
+                                <div className="text-xs text-brand-dark-charcoal/80 max-w-xs truncate">{product.description}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-text">₲{product.price.toLocaleString('es-PY')}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">₲{product.price.toLocaleString('es-PY')}</td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${getStockColor(product.stock_quantity)}`}>{product.stock_quantity} unidades</td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <button onClick={() => openSaleModal(product)} className="text-green-400 hover:text-green-300 disabled:text-gray-600 p-2 font-semibold text-xs" disabled={product.stock_quantity === 0}>VENDER</button>
-                                <button onClick={() => openEditModalForEdit(product)} className="text-brand-primary hover:text-brand-secondary p-2"><PencilIcon className="w-5 h-5" /></button>
-                                <button onClick={() => onDeleteProduct(product.id)} className="text-red-400 hover:text-red-500 p-2"><TrashIcon className="w-5 h-5" /></button>
+                                <button onClick={() => openSaleModal(product)} className="text-green-600 hover:text-green-800 disabled:text-gray-400 p-2 font-semibold text-xs" disabled={product.stock_quantity === 0}>VENDER</button>
+                                <button onClick={() => openEditModalForEdit(product)} className="text-brand-dark-green hover:text-opacity-80 p-2"><PencilIcon className="w-5 h-5" /></button>
+                                <button onClick={() => onDeleteProduct(product.id)} className="text-red-500 hover:text-red-700 p-2"><TrashIcon className="w-5 h-5" /></button>
                             </td>
                         </tr>
                     ))}
@@ -109,7 +109,7 @@ export const InventoryManagementView: React.FC<InventoryManagementViewProps> = (
         </div>
         {filteredProducts.length === 0 && (
             <div className="text-center py-16">
-                <p className="text-lg text-brand-text-secondary">No tienes productos en tu inventario.</p>
+                <p className="text-lg text-brand-dark-charcoal/70">No tienes productos en tu inventario.</p>
                 <p className="text-sm text-gray-500">{searchTerm ? 'Intenta con otra búsqueda.' : 'Haz clic en "+ Añadir" para empezar.'}</p>
             </div>
         )}
