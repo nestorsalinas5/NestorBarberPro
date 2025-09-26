@@ -22,8 +22,8 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ services, date, 
   const totalDuration = services.reduce((total, s) => total + s.duration, 0);
 
   return (
-    <div className="lg:sticky top-8">
-      <h3 className="text-xl font-bold text-brand-dark-charcoal mb-4 border-b-2 border-brand-dark-charcoal pb-2">
+    <div className="lg:sticky top-28">
+      <h3 className="text-xl font-bold text-brand-dark-charcoal mb-4 border-b-2 border-brand-dark-charcoal pb-2 font-serif">
         Tu Cita
       </h3>
       <div className="space-y-1">
@@ -49,8 +49,8 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ services, date, 
         <SummaryItem label="Hora" value={timeSlot?.time || null} />
 
         <div className="flex justify-between items-center pt-4">
-          <span className="text-lg font-bold text-brand-dark-charcoal/80">Total</span>
-          <span className="text-2xl font-bold text-brand-dark-charcoal">
+          <span className="text-lg font-bold text-brand-dark-charcoal/80 font-serif">Total</span>
+          <span className="text-2xl font-bold text-brand-gold">
             ₲{totalPrice.toLocaleString('es-PY')}
           </span>
         </div>
